@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<!-- saved from url=(0127)https://t90141701569.p.clickup-attachments.com/t90141701569/5e1fd129-4c7d-4294-bdd9-4af0886b4dab/Pluvia-final-v2.html?view=open -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#d9dfd4">
+<title>Pluvia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./game_files/css2" rel="stylesheet">
+<style>
+:root {
+  --ink: oklch(28% .025 151);
+  --muted: oklch(42% .024 151);
+  --accent: oklch(43% .071 147);
+  --soft: oklch(98% .01 120 / .22);
+  --edge: oklch(99% .006 120 / .45);
+  --ease: cubic-bezier(.16,1,.3,1);
+  --shadow-text: 0 2px 12px oklch(98% .01 120 / .6);
+}
+body.night { --ink: oklch(94% .012 260); --muted: oklch(80% .025 260); --accent: oklch(80% .09 230); --soft: oklch(30% .03 270 / .28); --edge: oklch(90% .02 260 / .28); --shadow-text: 0 2px 14px oklch(15% .03 270 / .7); }
+body.cold { --ink: oklch(30% .04 245); --muted: oklch(45% .04 240); --accent: oklch(52% .1 235); }
+body.leaf { --ink: oklch(24% .05 150); --muted: oklch(34% .05 150); --accent: oklch(40% .11 145); --soft: oklch(96% .03 130 / .22); }
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; width: 100%; height: 100%; overflow: hidden;
+  background: oklch(85% .025 123); color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; z-index: 1; }
+canvas:focus { outline: 0; }
+
+.wash { position: fixed; inset: 0; pointer-events: none; z-index: 2; transition: opacity 1.2s var(--ease);
+  background: linear-gradient(180deg,oklch(96% .016 110 / .6),transparent 28%,transparent 72%,oklch(94% .014 114 / .55));
+  box-shadow: inset 0 0 110px oklch(35% .04 145 / .1); }
+.night .wash { background: linear-gradient(180deg,oklch(18% .03 275 / .6),transparent 30%,transparent 70%,oklch(16% .03 275 / .6)); box-shadow: inset 0 0 120px oklch(10% .03 275 / .5); }
+.cold .wash { background: linear-gradient(180deg,oklch(97% .012 235 / .55),transparent 30%,transparent 75%,oklch(96% .012 235 / .5)); box-shadow: inset 0 0 120px oklch(80% .04 235 / .35); }
+.leaf .wash { background: linear-gradient(180deg,oklch(92% .05 120 / .45),transparent 30%,transparent 72%,oklch(30% .06 150 / .35)); box-shadow: inset 0 0 120px oklch(25% .06 150 / .3); }
+.danger-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 3; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, oklch(62% .09 60 / .35) 82%, oklch(55% .11 45 / .6) 100%); }
+
+.screen { position: fixed; inset: 0; pointer-events: none; z-index: 10; opacity: 1; transition: opacity .45s var(--ease), visibility .45s; }
+.screen.hidden, .fade.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+button { pointer-events: auto; cursor: pointer; border: none; outline: none; background: none; color: inherit; font: inherit; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.ui-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--soft); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid var(--edge); color: var(--ink); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px oklch(20% .02 150 / .08); transition: transform .15s var(--ease), background-color .2s; }
+.ui-btn:active { transform: scale(.9); }
+.ui-btn svg:not([fill]) { fill: none; }
+.ui-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tl { position: absolute; top: max(28px, env(safe-area-inset-top)); left: 24px; }
+.tr { position: absolute; top: max(28px, env(safe-area-inset-top)); right: 24px; }
+.bl { position: absolute; bottom: max(28px, env(safe-area-inset-bottom)); left: 24px; }
+
+.record-badge { position: absolute; top: max(36px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 800; letter-spacing: .04em; color: var(--ink); font-variant-numeric: tabular-nums; z-index: 20; transition: opacity .4s; }
+.record-badge svg { width: 18px; height: 18px; opacity: .7; }
+
+/* Menu */
+.game-title { position: absolute; top: max(96px, calc(env(safe-area-inset-top) + 70px)); left: 0; right: 0; text-align: center;
+  font: 800 clamp(46px, 11vw, 68px)/1 -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: .18em; text-indent: .18em; color: var(--ink); text-shadow: var(--shadow-text); }
+.menu-hint { position: absolute; left: 0; right: 0; top: max(176px, calc(env(safe-area-inset-top) + 150px)); text-align: center;
+  font-size: 12px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); animation: breathe 3.2s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .45; } }
+.plant-tag { position: absolute; left: 0; right: 0; top: max(214px, calc(env(safe-area-inset-top) + 188px)); display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .06em; }
+.plant-tag b { color: var(--ink); letter-spacing: .16em; text-transform: uppercase; font-size: 11px; }
+.thread { width: 120px; height: 3px; border-radius: 2px; background: oklch(30% .02 150 / .16); overflow: hidden; }
+.thread i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 1.6s var(--ease); }
+
+.settings-container { position: absolute; bottom: max(28px, env(safe-area-inset-bottom)); left: 24px; pointer-events: none; }
+.settings-drawer { position: absolute; bottom: 100%; left: 0; margin-bottom: 12px; display: flex; flex-direction: column-reverse; gap: 12px; opacity: 0; transform: translateY(16px); transition: all .3s var(--ease); pointer-events: none; }
+.settings-container.open .settings-drawer { opacity: 1; pointer-events: auto; transform: none; }
+
+/* Info */
+.info-panel { position: absolute; inset: max(90px, calc(env(safe-area-inset-top) + 70px)) 0 max(96px, calc(env(safe-area-inset-bottom) + 86px)); overflow-y: auto; pointer-events: auto; -webkit-overflow-scrolling: touch; }
+.info-inner { max-width: 380px; margin: 0 auto; padding: 0 28px 24px; }
+.info-inner h2 { font: 800 30px/1 -apple-system, sans-serif; letter-spacing: .16em; margin: 0 0 6px; }
+.info-inner .lede { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+.info-inner h3 { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); margin: 32px 0 12px; }
+.rows { display: grid; gap: 14px; }
+.row { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; font-size: 14px; line-height: 1.45; }
+.row b { display: block; font-size: 14px; }
+.row span { color: var(--muted); }
+.dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; border: 1.5px solid oklch(30% .02 150 / .35); }
+.dot.ice { background: oklch(93% .04 225); } .dot.soap { background: conic-gradient(oklch(85% .1 20), oklch(88% .1 120), oklch(85% .1 250), oklch(85% .1 20)); }
+.dot.charge { background: oklch(78% .12 300); } .dot.grime { background: oklch(55% .08 65); } .dot.plain { background: oklch(96% .01 120 / .6); }
+.moment { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 8px 0; border-bottom: 1px solid oklch(30% .02 150 / .1); }
+.moment span { color: var(--muted); text-align: right; font-size: 13px; }
+.moment.locked b { opacity: .45; font-weight: 600; }
+.moment.got b::after { content: ' ✦'; color: var(--accent); }
+
+/* HUD */
+.water-indicator { position: absolute; top: max(30px, env(safe-area-inset-top)); left: 26px; width: 38px; height: 50px; transition: transform .2s var(--ease); }
+.water-indicator.bump { transform: scale(1.12); }
+.water-indicator.hurt { transform: scale(.88); }
+.water-indicator svg { position: absolute; }
+.water-bg { inset: 0; width: 100%; height: 100%; fill: oklch(99% .006 120 / .22); stroke: var(--ink); stroke-width: 1.3; }
+.water-fill-wrapper { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; overflow: hidden; transition: height .2s ease-out; }
+.water-fill { bottom: 0; left: 0; width: 38px; height: 50px; fill: var(--accent); transition: fill .4s; }
+.fx-ring { position: absolute; left: -9px; top: -3px; width: 56px; height: 56px; transform: rotate(-90deg); }
+.fx-ring circle { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 160; stroke-dashoffset: 160; transition: stroke .3s; }
+.hud-center { position: absolute; top: max(34px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.distance-display { font-size: 30px; line-height: 1; font-weight: 800; color: var(--ink); text-shadow: var(--shadow-text); font-variant-numeric: tabular-nums; }
+.chapter-track { display: flex; gap: 4px; margin-top: 4px; }
+.chapter-track i { width: 20px; height: 3px; border-radius: 2px; background: oklch(50% .02 150 / .22); overflow: hidden; position: relative; }
+.chapter-track i b { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--ink); }
+
+.chapter-card { position: fixed; left: 0; right: 0; top: 34%; text-align: center; z-index: 12; pointer-events: none; opacity: 0; transform: translateY(10px); transition: opacity 1s var(--ease), transform 1.4s var(--ease); color: var(--ink); text-shadow: var(--shadow-text); }
+.chapter-card.show { opacity: 1; transform: none; }
+.chapter-card .num { display: block; font-size: 13px; letter-spacing: .4em; font-weight: 700; color: var(--muted); }
+.chapter-card .name { display: block; font-size: clamp(30px, 8vw, 44px); font-weight: 800; letter-spacing: .14em; margin: 6px 0; }
+.chapter-card .line { display: block; font-size: 15px; font-style: italic; color: var(--muted); }
+
+.hint { position: fixed; left: 0; right: 0; bottom: max(44px, calc(env(safe-area-inset-bottom) + 30px)); text-align: center; z-index: 12; pointer-events: none; font-size: 14px; font-weight: 600; color: var(--ink); text-shadow: var(--shadow-text); opacity: 0; transform: translateY(8px); transition: opacity .6s var(--ease), transform .6s var(--ease); padding: 0 24px; }
+.hint.show { opacity: .92; transform: none; }
+.hint small { display: block; font-size: 12px; color: var(--muted); font-weight: 500; }
+.toast { position: fixed; left: 50%; top: max(118px, calc(env(safe-area-inset-top) + 96px)); z-index: 30; pointer-events: none; transform: translate(-50%, -8px); opacity: 0; transition: opacity .5s var(--ease), transform .5s var(--ease);
+  font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ink); background: var(--soft); border: 1px solid var(--edge); padding: 8px 16px; border-radius: 20px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); white-space: nowrap; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Pause */
+.overlay-bg { position: absolute; inset: 0; background: oklch(92% .016 125 / .5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); will-change: opacity; }
+.night .overlay-bg { background: oklch(20% .03 270 / .55); }
+.pause-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 36px; }
+.pause-title { font: 800 42px -apple-system, sans-serif; letter-spacing: .3em; text-indent: .3em; }
+.pause-settings { display: flex; gap: 14px; }
+
+/* Ended */
+.ended-content { position: absolute; top: 36%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: min(88%, 380px); }
+.ended-title { font: 800 14px -apple-system, sans-serif; letter-spacing: .4em; text-indent: .4em; color: var(--muted); margin-bottom: 8px; }
+.ended-score { font: 800 clamp(64px, 17vw, 92px)/1 -apple-system, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; text-shadow: var(--shadow-text); }
+.ended-stats { margin-top: 12px; font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .04em; }
+.gift { margin-top: 32px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.gift-line { font-size: 15px; font-weight: 700; }
+.gift .thread { width: 180px; }
+.gift-stage { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+.gift-perk { font-size: 13px; color: var(--accent); font-weight: 700; min-height: 20px; }
+.restart-btn { position: absolute; left: 50%; bottom: max(64px, calc(env(safe-area-inset-bottom) + 40px)); width: 84px; height: 84px; margin-left: -42px;
+  background: var(--soft); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 2px solid var(--edge);
+  border-radius: 0 50% 50% 50%; transform: rotate(45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px oklch(20% .02 150 / .12); transition: transform .15s var(--ease); }
+.restart-btn:active { transform: rotate(45deg) scale(.92); }
+.restart-btn svg { transform: rotate(-45deg); width: 34px; height: 34px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; }
+
+:root { --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif; }
+body.leaf2 { --ink: oklch(95% .02 130); --muted: oklch(85% .04 130); --accent: oklch(86% .12 112); --soft: oklch(30% .05 150 / .3); --edge: oklch(92% .04 130 / .3); --shadow-text: 0 2px 14px oklch(18% .04 150 / .7); }
+.leaf2 .wash { background: linear-gradient(180deg,oklch(30% .06 150 / .45),transparent 30%,transparent 72%,oklch(20% .05 150 / .45)); box-shadow: inset 0 0 120px oklch(18% .05 150 / .45); }
+.leaf2 .overlay-bg, .night .overlay-bg { background: oklch(18% .03 260 / .6); }
+/* game-1 title, set inside game-2's menu */
+.g1-title { position: absolute; left: 0; right: 0; top: 12vh; text-align: center; pointer-events: none; }
+.g1-title h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(3.4rem, 13vw, 6.5rem); letter-spacing: -.01em; line-height: 1; color: var(--ink); text-shadow: 0 4px 40px oklch(15% .04 260 / .6); margin: 0; }
+.g1-title .tag { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--muted); margin-top: .5rem; }
+.g1-title .plant-tag { position: static; margin-top: 22px; }
+.how { position: absolute; left: 0; right: 0; bottom: max(14vh, 96px); font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: none; }
+.how i { display: block; width: 1px; height: 38px; background: linear-gradient(oklch(95% .01 240 / 0), oklch(95% .01 240 / .8)); animation: pull 2.2s var(--ease) infinite; }
+@keyframes pull { 0% { transform: translateY(-10px) scaleY(.4); opacity: 0 } 40% { opacity: 1 } 100% { transform: translateY(14px) scaleY(1); opacity: 0 } }
+.menu-foot { position: absolute; left: 0; right: 0; bottom: max(30px, env(safe-area-inset-bottom)); display: flex; justify-content: center; pointer-events: none; }
+.text-btn { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 12px 6px; transition: color .2s; pointer-events: auto; }
+.text-btn:hover { color: var(--ink); }
+.chapter-track { display: none !important; }
+.chapter-card .num { font-weight: 600; letter-spacing: .3em; font-size: 12px; }
+.chapter-card .name { font-family: var(--serif); font-weight: 400; letter-spacing: 0; font-size: clamp(2.2rem, 7vw, 3.6rem); line-height: 1.05; margin: .15em 0 .2em; }
+.chapter-card .line { font-family: var(--serif); font-size: 1.1rem; }
+/* game-1 plant panel */
+.panel { position: fixed; inset: 0; z-index: 40; display: flex; opacity: 0; pointer-events: none; transition: opacity .6s var(--ease); }
+.panel.on { opacity: 1; pointer-events: auto; }
+#plant { --paper: oklch(95.5% .014 145); --paper-2: oklch(91.5% .02 145); --moss: oklch(42% .07 150); --moss-deep: oklch(28% .05 155); background: var(--paper); color: var(--moss-deep); overflow: auto; }
+#plant .wrap { display: grid; grid-template-columns: minmax(260px,1fr) minmax(300px,440px); gap: clamp(24px,5vw,72px); width: min(1080px,100%); margin: auto; padding: clamp(24px,5vh,64px) clamp(20px,5vw,56px); }
+#plantCanvas { width: 100%; aspect-ratio: 4/5; max-height: 78vh; display: block; }
+#plant .eyebrow { font-size: .7rem; letter-spacing: .22em; text-transform: uppercase; color: oklch(50% .05 150); }
+#plant h3 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem,5vw,3.2rem); line-height: 1.02; margin: .25em 0 .2em; color: oklch(25% .04 155); text-wrap: balance; }
+#plant .lede { font-family: var(--serif); font-style: italic; font-size: 1.2rem; color: oklch(42% .04 150); max-width: 36ch; margin: 0; }
+#plant .ml { font-variant-numeric: tabular-nums; font-family: var(--serif); font-size: 1.25rem; color: oklch(35% .06 230); margin-top: 18px; }
+#plant .ml b { font-weight: 400; font-size: 2.2rem; }
+#plant h4 { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: oklch(50% .05 150); margin: 34px 0 12px; font-weight: 600; }
+.ladder { list-style: none; display: flex; flex-direction: column; margin: 0; padding: 0; }
+.ladder li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 7px 0; align-items: start; color: oklch(62% .02 150); }
+.ladder li .ldot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid oklch(70% .03 150); margin: 6px 0 0 5px; }
+.ladder li.got { color: oklch(30% .05 155); }
+.ladder li.got .ldot { background: var(--moss); border-color: var(--moss); }
+.ladder li b { font-weight: 600; font-size: .92rem; }
+.ladder li span { display: block; font-size: .85rem; opacity: .85; }
+.ladder li small { font-size: .72rem; letter-spacing: .06em; font-variant-numeric: tabular-nums; opacity: .8; }
+.moments { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 4px 18px; }
+.moments div { padding: 6px 0; font-size: .86rem; color: oklch(66% .02 150); line-height: 1.3; }
+.moments div.got { color: oklch(30% .05 155); }
+.moments div b { display: block; font-family: var(--serif); font-weight: 400; font-size: 1.08rem; }
+.moments div.got b::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: oklch(70% .12 75); margin: 0 7px 3px 0; }
+#plant .actions { display: flex; gap: 10px; margin-top: 34px; flex-wrap: wrap; }
+.pill { font-size: .9rem; font-weight: 600; padding: 13px 26px; border-radius: 999px; background: var(--moss-deep); color: var(--paper); transition: transform .15s var(--ease), background .2s; }
+.pill:hover { background: oklch(34% .06 155); }
+.pill:active { transform: scale(.97); }
+.pill.ghost { background: none; color: var(--moss-deep); box-shadow: inset 0 0 0 1.5px oklch(70% .04 150); }
+.pill.ghost:hover { background: var(--paper-2); }
+@media (max-width: 760px) { #plant .wrap { grid-template-columns: 1fr; gap: 8px; } #plantCanvas { max-height: 46vh; aspect-ratio: 1/1; } }
+@media (prefers-reduced-motion: reduce) { .how i { animation: none; } }
+
+@media (max-width: 380px) { .ui-btn { width: 46px; height: 46px; } }
+@media (prefers-reduced-motion: reduce) { .menu-hint { animation: none; } }
+</style>
+</head>
+<body>
+<canvas id="glass" aria-label="Pluvia game" tabindex="0"></canvas>
+<div class="wash"></div>
+<div class="danger-overlay" id="danger-overlay"></div>
+
+<div class="record-badge fade" id="record-badge">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M2 16l3-10 4 4 3-8 3 8 4-4 3 10z"></path></svg>
+  <span id="record-display">0</span>
+</div>
+
+<div id="screen-menu" class="screen">
+  <div class="g1-title">
+    <h1>Pluvia</h1>
+    <div class="tag">the long way down</div>
+    <div class="plant-tag"><b id="plant-stage">Sprout</b><div class="thread"><i id="plant-thread"></i></div><span id="plant-water">0 water given</span></div>
+  </div>
+  <button class="ui-btn tl" id="btn-top-info" aria-label="About">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></svg>
+  </button>
+  <div class="how"><span id="menu-hint">pull the leaf down</span><i></i></div>
+  <div class="menu-foot"><button class="text-btn" id="btn-plant">Your plant</button></div>
+  <div class="settings-container" id="settings-container">
+    <button class="ui-btn" id="btn-settings" aria-label="Settings" style="pointer-events:auto">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>
+    </button>
+    <div class="settings-drawer">
+      <button class="ui-btn" id="btn-sound" aria-label="Sound"></button>
+      <button class="ui-btn" id="btn-music" aria-label="Music"></button>
+      <button class="ui-btn" id="btn-control" aria-label="Controls"></button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-info" class="screen hidden">
+  <div class="info-panel">
+    <div class="info-inner">
+      <h2>PLUVIA</h2>
+      <p class="lede">One drop of rain, one long way home.</p>
+      <div class="rows">
+        <div class="row"><div class="dot plain"></div><div><b>Steer</b><span>Drag anywhere, tilt, or use the arrow keys. Heavy drops fall fast and turn slowly.</span></div></div>
+        <div class="row"><div class="dot plain"></div><div><b>Split</b><span>Tap (or Space) to shed a piece of yourself and burst toward the tap. It costs water. The piece stays behind: catch it again if you can.</span></div></div>
+        <div class="row"><div class="dot plain"></div><div><b>Wet paths</b><span>Glass that was just crossed stays wet. Follow trails to slide faster and dry out slower.</span></div></div>
+      </div>
+      <h3>Drops</h3>
+      <div class="rows">
+        <div class="row"><div class="dot ice"></div><div><b>Ice</b><span>Stops evaporation for a while. Slippery and slow to steer.</span></div></div>
+        <div class="row"><div class="dot soap"></div><div><b>Soap</b><span>Almost no friction. Very fast, very hard to hold.</span></div></div>
+        <div class="row"><div class="dot charge"></div><div><b>Static</b><span>A magnet. Everything close is dragged into you, the grime too.</span></div></div>
+        <div class="row"><div class="dot grime"></div><div><b>Grime</b><span>Steals water and makes you dry faster. Split to shed it.</span></div></div>
+        <div class="row"><div class="dot" style="background:oklch(86% .15 90)"></div><div><b>Pollen</b><span>One hides on every surface. Carry it to the soil and it blooms.</span></div></div>
+        <div class="row"><div class="dot ice"></div><div><b>Frost</b><span>On the frozen roof, still water freezes. Keep moving, or rock left and right to crack free.</span></div></div>
+      </div>
+      <h3>Moments</h3>
+      <div id="moment-list"></div>
+      <h3>The plant</h3>
+      <div class="rows" id="perk-list"></div>
+    </div>
+  </div>
+  <button class="ui-btn bl" id="btn-info-menu" aria-label="Back">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg>
+  </button>
+</div>
+
+<div id="screen-playing" class="screen hidden">
+  <div class="water-indicator" id="water-indicator">
+    <svg class="fx-ring" viewBox="0 0 56 56"><circle id="fx-ring" cx="28" cy="28" r="25.5"></circle></svg>
+    <svg class="water-bg" viewBox="0 0 24 32"><path d="M12 2C10 8 3 14 3 21a9 9 0 0 0 18 0C21 14 14 8 12 2Z"></path></svg>
+    <div class="water-fill-wrapper" id="water-fill-visual"><svg class="water-fill" id="water-fill" viewBox="0 0 24 32"><path d="M12 2C10 8 3 14 3 21a9 9 0 0 0 18 0C21 14 14 8 12 2Z"></path></svg></div>
+  </div>
+  <div class="hud-center">
+    <div class="distance-display" id="in-game-distance">0</div>
+    <div class="chapter-track" id="chapter-track"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+  </div>
+  <button class="ui-btn tr" id="btn-pause" aria-label="Pause">
+    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 5h4v14H6zm8 0h4v14h-4z"></path></svg>
+  </button>
+</div>
+
+<div id="screen-paused" class="screen hidden">
+  <div class="overlay-bg"></div>
+  <button class="ui-btn tl" id="btn-pause-restart" aria-label="Restart"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button>
+  <button class="ui-btn tr" id="btn-pause-resume" aria-label="Resume"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"></path></svg></button>
+  <div class="pause-content">
+    <div class="pause-title">PAUSE</div>
+    <div class="pause-settings">
+      <button class="ui-btn" id="btn-pause-menu" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></button>
+      <button class="ui-btn" id="btn-pause-sound" aria-label="Sound"></button>
+      <button class="ui-btn" id="btn-pause-music" aria-label="Music"></button>
+      <button class="ui-btn" id="btn-pause-control" aria-label="Controls"></button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-ended" class="screen hidden">
+  <button class="ui-btn tl" id="btn-ended-menu" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></button>
+  <div class="ended-content">
+    <div class="ended-title" id="ended-title">EVAPORATED</div>
+    <div class="ended-score" id="final-score-display">0</div>
+    <div class="ended-stats" id="ended-stats"></div>
+    <div class="gift">
+      <div class="gift-line" id="gift-line"></div>
+      <div class="thread"><i id="gift-thread"></i></div>
+      <div class="gift-stage" id="gift-stage"></div>
+      <div class="gift-perk" id="gift-perk"></div>
+    </div>
+  </div>
+  <button class="restart-btn" id="btn-ended-restart" aria-label="Fall again"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button>
+</div>
+
+<div class="panel" id="plant" inert="">
+  <div class="wrap">
+    <canvas id="plantCanvas" width="800" height="1000" aria-label="Your plant"></canvas>
+    <div>
+      <div class="eyebrow" id="plantEyebrow">Your plant</div>
+      <h3 id="plantTitle">Sprout</h3>
+      <p class="lede" id="plantLede">Every drop that reaches the soil stays here.</p>
+      <div class="ml"><b id="plantMl">0</b> water given</div>
+      <h4>What it gives back</h4>
+      <ul class="ladder" id="ladder"></ul>
+      <h4>Moments</h4>
+      <div class="moments" id="moments"></div>
+      <div class="actions">
+        <button class="pill" id="btnAgain">Fall again</button>
+        <button class="pill ghost" id="btnClose">Back to the leaf</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="chapter-card" id="chapter-card"><span class="num" id="cc-num">I</span><span class="name" id="cc-name">The Window</span><span class="line" id="cc-line"></span></div>
+<div class="hint" id="hint"></div>
+<div class="toast" id="toast"></div>
+<script>
+(()=>{'use strict';
+const $ = id => document.getElementById(id), canvas = $('glass'), ctx = canvas.getContext('2d', {alpha: false});
+if(!ctx) return;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t, rand = (a, b) => a + Math.random() * (b - a), tau = Math.PI * 2;
+const easeOut = t => 1 - Math.pow(1 - clamp(t,0,1), 3), easeInOut = t => { t = clamp(t,0,1); return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; };
+function weighted(o){ let s = 0, k; for(k in o) s += o[k]; let r = Math.random() * s; for(k in o){ r -= o[k]; if(r <= 0) return k; } return k; }
+function color(l, c=.014, h=140, a=1){ return `oklch(${l}% ${c} ${h} / ${a})`; }
+
+/* ---------------- Save & progression ---------------- */
+const SAVE_KEY = 'pluvia.save.v2';
+const save = {best: 0, water: 0, moments: {}, seenOpening: false, hints: {}, runs: 0, flowers: [], homes: 0};
+try { const raw = localStorage.getItem(SAVE_KEY); if(raw) Object.assign(save, JSON.parse(raw)); if(!Array.isArray(save.flowers)) save.flowers = []; else save.best = Math.max(0, Number(localStorage.getItem('pluvia.best')) || 0); } catch {}
+function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
+
+const STAGES = [
+  {at: 0, name: 'Sprout'},
+  {at: 150, name: 'Seedling', perk: 'Deep roots', desc: 'Every journey begins with more water.'},
+  {at: 500, name: 'Young plant', perk: 'Waxy leaves', desc: 'You evaporate 10% slower.'},
+  {at: 1100, name: 'Leafy', perk: 'Long memory', desc: 'Ice, soap and static last 30% longer.'},
+  {at: 2000, name: 'Budding', perk: 'Soft membrane', desc: 'Splitting costs less and recovers faster.'},
+  {at: 3200, name: 'In bloom', perk: 'Pollen', desc: 'A little more water, and a little of the flower\u2019s light.'},
+];
+const stageIndex = w => { let i = 0; STAGES.forEach((s, k) => { if(w >= s.at) i = k; }); return i; };
+function perks(){ const i = stageIndex(save.water); return { startMass: 65 + (i >= 1 ? 12 : 0) + (i >= 5 ? 10 : 0), evap: i >= 2 ? .9 : 1, fx: i >= 3 ? 1.3 : 1, splitCost: i >= 4 ? .22 : .28, splitCd: i >= 4 ? .55 : .85, glow: i >= 5 }; }
+function growth(w){ const i = stageIndex(w); if(i >= STAGES.length - 1) return i; return i + (w - STAGES[i].at) / (STAGES[i+1].at - STAGES[i].at); }
+
+const MOMENTS = [
+  ['first', 'First fall', 'Let go of the leaf.'],
+  ['heavy', 'Heavy heart', 'Swell to a mass of 300.'],
+  ['shave', 'Close shave', 'Let a wiper pass a hair away.'],
+  ['cling', 'Static cling', 'Pull in 8 drops with one charge.'],
+  ['slick', 'Slick', 'Glide 600 far inside one bubble.'],
+  ['mitosis', 'Mitosis', 'Catch a piece of yourself.'],
+  ['clean', 'Clean hands', 'Cross a glass without touching grime.'],
+  ['feather', 'Featherweight', 'Cross a glass under a mass of 25.'],
+  ['thaw', 'Thaw', 'Crack free of the frost.'],
+  ['unbroken', 'Unbroken', 'Reach the soil without splitting.'],
+  ['pollinator', 'Pollinator', 'Carry all four pollen home at once.'],
+  ['thread', 'By a thread', 'Leave a sill lighter than 30.'],
+  ['home', 'Full circle', 'Return to the soil.'],
+  ['deluge', 'Deluge', 'Return home with a mass of 250.'],
+];
+
+/* ---------------- Environments ---------------- */
+const ENVS = [
+  { key: 'window', num: 'I', name: 'The Window', line: 'Evening rain on the living-room glass.', len: 17000, theme: 'night', dark: true, g1: true,
+    friction: 1, gravity: 1, evap: 1, wind: .75, windBias: 0, trailLife: 12,
+    patches: {dry: .55, wet: .45}, patchChance: .7, specials: {ice: .3, soap: .25, grime: .3, charge: .15}, specialEvery: [7, 11],
+    rain: 34, impacts: 1.3, bolt: .44, headlights: true, sill: 'wood',
+    fog: {alpha: .74, regen: .045, milk: 'oklch(0.80 0.025 260)', milkA: .42} },
+  { key: 'windshield', num: 'II', name: 'The Windshield', line: 'Parked below. Then the city blurs past.', len: 21000, theme: 'night', dark: true,
+    friction: .9, gravity: 1.05, evap: 1.1, wind: 1.55, windBias: 0, trailLife: 9,
+    patches: {oil: .45, dirt: .3, wet: .25}, patchChance: .6, specials: {charge: .4, grime: .35, soap: .15, ice: .1}, specialEvery: [6, 9],
+    rain: 60, impacts: 2.3, wipe: true, gust: [9, 14], bolt: 0, sill: 'cowl', washMe: true },
+  { key: 'frost', num: 'III', name: 'The Greenhouse Roof', line: 'Dawn. The glass has frozen over.', len: 21000, theme: 'cold', g1: true,
+    friction: .8, gravity: .9, evap: .4, wind: .3, windBias: 0, trailLife: 7,
+    patches: {frostp: 1}, patchChance: .75, specials: {ice: .3, charge: .35, soap: .15, grime: .2}, specialEvery: [6, 9],
+    rain: 0, impacts: .7, rime: true, sill: 'bar',
+    fog: {alpha: .93, regen: .3, milk: 'oklch(0.94 0.018 235)', milkA: .7, frost: true} },
+  { key: 'leaf', num: 'IV', name: 'The Leaf', line: 'Inside, where it is warm and green.', len: 19000, theme: 'leaf2', dark: true, g1: true,
+    friction: .45, gravity: .95, evap: .95, wind: .25, windBias: 0, trailLife: 1.4, lotus: true,
+    patches: {}, patchChance: 0, specials: {soap: .3, ice: .2, grime: .25, charge: .25}, specialEvery: [6, 10],
+    rain: 0, impacts: .5, leaf: true, sun: true, sill: 'tip' },
+];
+const POLLEN_COLORS = ['oklch(0.97 0.02 90)', 'oklch(0.78 0.13 30)', 'oklch(0.76 0.1 300)', 'oklch(0.86 0.15 90)'];
+const CHORDS = [[110, 164.8, 246.9, 329.6], [87.3, 130.8, 220, 329.6], [82.4, 123.5, 246.9, 370], [65.4, 98, 196, 293.7]];
+
+/* ---------------- State ---------------- */
+let W = innerWidth, H = innerHeight, S = 1, DPR = 1;
+let scene = document.createElement('canvas'), sceneCtx = scene.getContext('2d');
+let nextScene = document.createElement('canvas');
+let drops = [], trails = [], pulses = [], specks = [], patches = [], particles = [], streaks = [], wisps = [], bokeh = [];
+let trailGrid = new Map(), trailCell = 32;
+let state = 'menu', pausedFrom = null, clock = 0, acc = 0, last = 0, uiClock = 0, camera = 0, runTime = 0, chapterTime = 0;
+let travel = 0, chapterTravel = 0, collected = 0, score = 0, chapterBonus = 0, wind = 0, windShown = 0, spawnClock = 0, lastPatchCamera = 0, specialClock = 8;
+let envIndex = 0, env = ENVS[0], TL = 12;
+let effects = {ice: 0, soap: 0, charge: 0, grime: 0}, effectMax = {ice: 1, soap: 1, charge: 1, grime: 1};
+let shake = 0, flash = 0, splitCd = 0, dangerLevel = 0;
+let wiper = null, wiperClock = 0, gust = null, gustClock = 0, lightningClock = 0, thunderAt = -1, mistClock = 0, mistT = 0;
+let beams = [], figure = null, figureClock = 12, headlight = null, headClock = 5, trafficT = 0;
+let transition = null, opening = null, dying = null, homeScene = null;
+let run = null;
+let P = perks();
+const player = {x: 0, y: 0, vx: 0, vy: 0, mass: 65, wobble: 0, wet: 0, trailClock: 0, id: 1, dash: 0};
+const input = {active: false, touch: false, x: 0, y: 0, originX: 0, originY: 0, downT: 0, downX: 0, downY: 0, moved: 0, keys: new Set(), lastDir: 1};
+let sound = null, soundOn = false, musicOn = false, controlType = 'touch', tiltActive = false, tiltX = 0, tiltY = 0;
+let dropIds = 2;
+let Q = 1, rings = [], sill = null, gatherT = null, fallT = null, ending = null, intro = null;
+let chStartY = 0, tipY = null, leafSillY = 0, texts = [], pollenY = 0, pollenDone = false, rime = 0, frozenSolid = false, crack = 0, lastSign = 0;
+let flashQ = 0, thunderT = -1, thunderNear = false, boltClock = 9, wiperWet = 0, wiperLast = null, sceneT = 0;
+
+const radius = m => Math.sqrt(Math.max(0, m)) * 3.5 * S;
+const TAU = Math.PI * 2, smooth = t => t * t * (3 - 2 * t), easeOut4 = t => 1 - Math.pow(1 - clamp(t, 0, 1), 4);
+function hash(n){ n = Math.sin(n * 127.1 + 311.7) * 43758.5453; return n - Math.floor(n); }
+function noise1(x){ const i = Math.floor(x), f = x - i; return lerp(hash(i), hash(i + 1), smooth(f)) * 2 - 1; }
+function poisson(l){ let L = Math.exp(-l), k = 0, p = 1; do { k++; p *= Math.random(); } while(p > L && k < 40); return k - 1; }
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- Scene painting ---------------- */
+function paintScene(key, target){
+  const k = .65; target.width = Math.ceil(W * k); target.height = Math.ceil(H * k);
+  const b = target.getContext('2d'); b.setTransform(k, 0, 0, k, 0, 0);
+  let g;
+  if(key === 'window'){
+    g = b.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, `oklch(91% .024 106)`); g.addColorStop(.43, `oklch(84% .027 119)`); g.addColorStop(1, `oklch(72% .041 147)`);
+    b.fillStyle = g; b.fillRect(0, 0, W, H); b.save(); b.filter = `blur(${22*S}px)`;
+    b.fillStyle = `oklch(77% .026 87)`; b.fillRect(W*.66, H*.16, W*.26, H*.64);
+    b.fillStyle = `oklch(83% .015 110)`; b.fillRect(W*.76, H*.10, W*.11, H*.7);
+    b.fillStyle = `oklch(52% .02 141 / .38)`; b.fillRect(W*.71, H*.28, W*.03, H*.17); b.fillRect(W*.83, H*.31, W*.055, H*.16); b.fillRect(W*.69, H*.6, W*.18, H*.035);
+    b.fillStyle = `oklch(95% .09 84 / .65)`; b.fillRect(W*.8, H*.43, W*.06, H*.14);
+    b.fillStyle = `oklch(94% .035 90 / .6)`; b.fillRect(W*.68, H*.28, W*.025, H*.17);
+    for(let i = 0; i < 35; i++){ const x = W*(.34 + Math.sin(i*19.71)*.68), y = H*(.9 + Math.cos(i*7.17)*.14), r = (45 + (i%7)*19)*S; b.beginPath(); b.ellipse(x, y, r*.65, r*1.5, -.4, 0, tau); b.fillStyle = `oklch(${40 + i%6*4}% ${.033 + i%3*.009} 137 / .13)`; b.fill(); }
+    b.fillStyle = `oklch(49% .016 137 / .24)`; b.fillRect(W*.91, 0, 18*S, H); b.restore();
+    for(let i = 0; i < 22; i++){ const x = W*(.52 + .47*Math.sin(i*8.21)), y = H*(.47 + .43*Math.cos(i*5.31)), r = (8 + i%5*4)*S; g = b.createRadialGradient(x, y, 0, x, y, r*2); g.addColorStop(0, `oklch(98% .039 91 / .46)`); g.addColorStop(.35, `oklch(95% .058 91 / .17)`); g.addColorStop(1, `oklch(95% .03 91 / 0)`); b.fillStyle = g; b.fillRect(x - r*2, y - r*2, r*4, r*4); }
+  } else if(key === 'windshield'){
+    g = b.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, `oklch(22% .045 275)`); g.addColorStop(.55, `oklch(30% .05 300)`); g.addColorStop(1, `oklch(40% .07 40)`);
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    b.save(); b.filter = `blur(${18*S}px)`;
+    for(let i = 0; i < 9; i++){ const x = W*(i/9) + Math.sin(i*3.1)*30*S, w = W*(.08 + (i%3)*.04), h = H*(.35 + (i*37%5)*.08); b.fillStyle = `oklch(${16 + i%3*3}% .03 275 / .8)`; b.fillRect(x, H*.62 - h, w, h + H*.1); }
+    for(let i = 0; i < 40; i++){ const x = (i*97.3 % 1)*W + Math.sin(i*12.9)*W*.5 + W*.5, y = H*(.2 + (i*0.618 % .45)); b.fillStyle = `oklch(${70 + i%3*8}% ${.1 + i%2*.04} ${[70, 50, 200, 90][i%4]} / .45)`; b.fillRect(((x % W) + W) % W, y, 6*S, 8*S); }
+    b.fillStyle = `oklch(55% .12 50 / .5)`; b.fillRect(0, H*.78, W, H*.22);
+    b.restore();
+    const lights = [[.18,.72,70,.12,55],[.35,.8,60,.14,40],[.62,.7,90,.1,70],[.82,.78,50,.16,30],[.5,.86,70,.12,25],[.08,.6,40,.08,200],[.92,.62,45,.1,160],[.7,.9,55,.15,20]];
+    for(const [lx, ly, lr, lc, lh] of lights){ const x = lx*W, y = ly*H, r = lr*S; g = b.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `oklch(88% ${lc} ${lh} / .7)`); g.addColorStop(.5, `oklch(75% ${lc} ${lh} / .28)`); g.addColorStop(1, `oklch(60% ${lc} ${lh} / 0)`); b.fillStyle = g; b.fillRect(x - r, y - r, r*2, r*2); }
+  } else if(key === 'altitude'){
+    g = b.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, `oklch(74% .07 245)`); g.addColorStop(.5, `oklch(88% .035 235)`); g.addColorStop(1, `oklch(96% .012 230)`);
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    g = b.createRadialGradient(W*.85, H*.08, 0, W*.85, H*.08, W*.6); g.addColorStop(0, `oklch(99% .02 90 / .9)`); g.addColorStop(1, `oklch(95% .02 90 / 0)`); b.fillStyle = g; b.fillRect(0, 0, W, H);
+    b.save(); b.filter = `blur(${26*S}px)`;
+    for(let i = 0; i < 26; i++){ const x = W*(i/26*1.3 - .15), y = H*(.78 + Math.sin(i*2.3)*.07), r = (70 + (i%5)*30)*S; b.beginPath(); b.ellipse(x, y, r*1.6, r*.7, 0, 0, tau); b.fillStyle = `oklch(${97 - i%3*2}% .008 240 / .8)`; b.fill(); }
+    b.restore();
+    b.save(); b.filter = `blur(${6*S}px)`;
+    b.beginPath(); b.moveTo(-W*.1, H*.62); b.lineTo(W*.55, H*.72); b.lineTo(W*.6, H*.745); b.lineTo(-W*.1, H*.78); b.closePath(); b.fillStyle = `oklch(62% .015 250 / .55)`; b.fill();
+    b.beginPath(); b.moveTo(W*.5, H*.715); b.lineTo(W*.56, H*.67); b.lineTo(W*.585, H*.672); b.lineTo(W*.57, H*.735); b.closePath(); b.fillStyle = `oklch(58% .015 250 / .5)`; b.fill();
+    b.restore();
+  } else if(key === 'greenhouse'){
+    g = b.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, `oklch(70% .13 130)`); g.addColorStop(.5, `oklch(60% .13 138)`); g.addColorStop(1, `oklch(48% .11 148)`);
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    for(let i = 0; i < 260; i++){ const x = rand(0, W), y = rand(0, H), r = rand(6, 16)*S; b.beginPath(); b.ellipse(x, y, r, r*.7, rand(0, tau), 0, tau); b.fillStyle = `oklch(${rand(52, 70)}% .12 ${rand(128, 148)} / .12)`; b.fill(); }
+    b.save(); b.filter = `blur(${24*S}px)`;
+    for(let i = 0; i < 6; i++){ b.fillStyle = `oklch(96% .04 110 / .22)`; b.fillRect(W*(i/5) - 4*S, 0, 8*S, H); }
+    b.fillStyle = `oklch(97% .05 100 / .3)`; b.fillRect(0, H*.05, W, 10*S);
+    b.restore();
+    for(let i = 0; i < 14; i++){ const x = rand(0, W), y = rand(0, H), r = rand(20, 60)*S; g = b.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `oklch(92% .09 115 / .28)`); g.addColorStop(1, `oklch(92% .09 115 / 0)`); b.fillStyle = g; b.fillRect(x - r, y - r, r*2, r*2); }
+  }
+  for(let i = 0; i < 15; i++){ const cx = W*Math.random(), cy = H*Math.random(), r = rand(40, 120)*S; const gr = b.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, key === 'windshield' ? `oklch(60% .03 280 / .12)` : `oklch(96% .011 115 / .22)`); gr.addColorStop(1, `oklch(96% .011 115 / 0)`); b.fillStyle = gr; b.beginPath(); b.arc(cx, cy, r, 0, tau); b.fill(); }
+}
+
+/* ==================================================================
+   Game-1 systems, re-scaled onto game-2's full-screen glass.
+   Q = game-1 unit -> screen px.
+   ================================================================== */
+const G1KEYS = new Set(['window', 'frost', 'leaf']);
+const sceneLo = document.createElement('canvas'), lctx = sceneLo.getContext('2d');
+const FOGR = .5;
+const fog = { mask: document.createElement('canvas'), buf: document.createElement('canvas'), comp: document.createElement('canvas'), acc: 0, cam: 0 };
+fog.mctx = fog.mask.getContext('2d'); fog.bctx = fog.buf.getContext('2d'); fog.cctx = fog.comp.getContext('2d');
+function fogResize(){
+  [fog.mask, fog.buf, fog.comp].forEach(c => { c.width = Math.max(4, Math.ceil(W*FOGR)); c.height = Math.max(4, Math.ceil(H*FOGR)); });
+  fog.mctx = fog.mask.getContext('2d'); fog.bctx = fog.buf.getContext('2d'); fog.cctx = fog.comp.getContext('2d');
+  sceneLo.width = Math.max(8, Math.ceil(W*.09/Q)); sceneLo.height = Math.max(8, Math.ceil(H*.09/Q));
+  fillFog(1);
+}
+
+/* ---------- sprites ---------- */
+const bokehCache = new Map();
+function bokehSprite(c){
+  if(bokehCache.has(c)) return bokehCache.get(c);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, c); g.addColorStop(.62, c); g.addColorStop(.8, c); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.globalAlpha = .9; x.fillRect(0, 0, 64, 64);
+  x.globalCompositeOperation = 'destination-out'; const g2 = x.createRadialGradient(32, 32, 0, 32, 32, 26);
+  g2.addColorStop(0, 'rgba(0,0,0,.35)'); g2.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g2; x.fillRect(0, 0, 64, 64);
+  bokehCache.set(c, cv); return cv;
+}
+const softDot = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return c; })();
+const frostTile = (() => {
+  const c = document.createElement('canvas'); c.width = 240; c.height = 240; const x = c.getContext('2d');
+  for(let i = 0; i < 1600; i++){ x.fillStyle = `rgba(255,255,255,${Math.random()*.35})`; x.fillRect(Math.random()*240, Math.random()*240, 1, 1); }
+  x.lineCap = 'round';
+  for(let k = 0; k < 26; k++){
+    let px = Math.random()*240, py = Math.random()*240, a = Math.random()*TAU; const L = rand(14, 46);
+    x.strokeStyle = `rgba(255,255,255,${rand(.25, .6)})`; x.lineWidth = rand(.5, 1.1);
+    for(let s = 0; s < 3; s++){
+      const ex = px + Math.cos(a)*L, ey = py + Math.sin(a)*L; x.beginPath(); x.moveTo(px, py); x.lineTo(ex, ey); x.stroke();
+      for(let b = 1; b < 5; b++){ const t = b/5, bx = lerp(px, ex, t), by = lerp(py, ey, t), bl = L*.3*(1 - t);
+        [1, -1].forEach(sg => { x.beginPath(); x.moveTo(bx, by); x.lineTo(bx + Math.cos(a + sg*.9)*bl, by + Math.sin(a + sg*.9)*bl); x.stroke(); }); }
+      a += rand(1.6, 2.4);
+    }
+  }
+  return c;
+})();
+function makePatch(kind, w, h, label){
+  const c = document.createElement('canvas'); c.width = Math.ceil(w); c.height = Math.ceil(h); const x = c.getContext('2d');
+  const cx = w/2, cy = h/2;
+  x.save(); x.translate(cx, cy); x.scale(1, h/w);
+  for(let i = 0; i < 7; i++){
+    const a = Math.random()*TAU, d = Math.random()*w*.22, rr = w*rand(.18, .32);
+    const g = x.createRadialGradient(Math.cos(a)*d, Math.sin(a)*d, 0, Math.cos(a)*d, Math.sin(a)*d, rr);
+    const col = kind === 'dirt' ? [92, 74, 52] : [245, 250, 255], al = kind === 'dirt' ? .5 : .55;
+    g.addColorStop(0, `rgba(${col},${al})`); g.addColorStop(1, `rgba(${col},0)`);
+    x.fillStyle = g; x.beginPath(); x.arc(Math.cos(a)*d, Math.sin(a)*d, rr, 0, TAU); x.fill();
+  }
+  x.restore();
+  const n = w*h/(kind === 'dirt' ? 22 : 40);
+  for(let i = 0; i < n; i++){
+    const a = Math.random()*TAU, d = Math.sqrt(Math.random())*.46, px = cx + Math.cos(a)*d*w, py = cy + Math.sin(a)*d*h;
+    if(kind === 'dirt'){ x.fillStyle = `rgba(${60 + Math.random()*40},${48 + Math.random()*30},30,${rand(.2, .6)})`; x.fillRect(px, py, rand(.6, 2), rand(.6, 2)); }
+    else { x.fillStyle = `rgba(255,255,255,${rand(.2, .7)})`; x.fillRect(px, py, 1.2, 1.2); }
+  }
+  if(kind === 'frost'){ x.globalAlpha = .9; x.save(); x.beginPath(); x.ellipse(cx, cy, w*.46, h*.46, 0, 0, TAU); x.clip(); x.drawImage(frostTile, 0, 0, w, h); x.restore(); }
+  if(label){
+    x.globalCompositeOperation = 'destination-out'; x.font = `500 ${Math.round(h*.34)}px Caveat, cursive`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillStyle = 'rgba(0,0,0,.85)'; x.save(); x.translate(cx, cy); x.rotate(-.06); x.fillText(label, 0, 0); x.restore();
+  }
+  return c;
+}
+
+/* ---------- scenes behind / under the glass (painted live) ---------- */
+const bokehSets = {};
+function getBokeh(key){
+  if(bokehSets[key]) return bokehSets[key];
+  const B = [], nW = Math.max(1, W/(480*Q)), Y = 1600*Q, add = (n, f) => { n = Math.round(n*nW); for(let i = 0; i < n; i++) B.push(f(i)); };
+  if(key === 'window'){
+    add(18, () => ({x: rand(0, W), y: rand(0, Y), r: rand(10, 26)*Q, c: `oklch(${rand(.72, .86)} ${rand(.09, .14)} ${rand(55, 80)})`, a: rand(.25, .6), d: rand(.04, .12)}));
+    add(10, () => ({x: rand(0, W), y: rand(0, Y), r: rand(5, 11)*Q, c: 'oklch(0.9 0.05 90)', a: rand(.3, .6), d: rand(.08, .15), tw: rand(0, TAU)}));
+  } else if(key === 'frost'){
+    add(12, () => ({x: rand(0, W), y: rand(0, Y), r: rand(10, 28)*Q, c: `oklch(${rand(.93, .97)} ${rand(.02, .04)} ${rand(60, 90)})`, a: rand(.12, .25), d: rand(.03, .1)}));
+  } else {
+    add(22, () => ({x: rand(0, W), y: rand(0, Y), r: rand(12, 40)*Q, c: `oklch(${rand(.55, .8)} ${rand(.08, .14)} ${rand(115, 150)})`, a: rand(.25, .5), d: rand(.1, .3)}));
+    add(8, () => ({x: rand(0, W), y: rand(0, Y), r: rand(6, 14)*Q, c: 'oklch(0.95 0.08 95)', a: rand(.35, .7), d: rand(.1, .3), tw: rand(0, TAU)}));
+  }
+  return (bokehSets[key] = B);
+}
+let g1head = null, headNext = 6;
+function updateHead(dt){
+  if(g1head){ g1head.x += g1head.v*dt; g1head.a = .75*Math.sin(clamp((g1head.x + 150*Q)/(W + 300*Q), 0, 1)*Math.PI); if(g1head.x > W + 160*Q || g1head.x < -160*Q) g1head = null; }
+  else { headNext -= dt; if(headNext <= 0){ const dir = Math.random() < .5 ? 1 : -1; g1head = {x: dir > 0 ? -150*Q : W + 150*Q, v: dir*rand(160, 240)*Q, a: 0}; headNext = rand(9, 17); } }
+}
+function g1Paint(key, target, cam){
+  const k = .5, tw = Math.max(4, Math.ceil(W*k)), th = Math.max(4, Math.ceil(H*k));
+  if(target.width !== tw || target.height !== th){ target.width = tw; target.height = th; }
+  const x = target.getContext('2d'); x.setTransform(k, 0, 0, k, 0, 0); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1;
+  let g;
+  if(key === 'window'){
+    g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'oklch(0.36 0.06 275)'); g.addColorStop(.55, 'oklch(0.27 0.05 255)'); g.addColorStop(1, 'oklch(0.2 0.035 240)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const T = 400*Q, sc = cam*.03, n0 = Math.floor(sc/T), off = sc - n0*T;
+    x.fillStyle = 'oklch(0.2 0.03 250)';
+    for(let i = -1; i < Math.ceil(H/T) + 2; i++){ const by = H*.62 - off + i*T, id = i + n0; x.beginPath(); x.moveTo(0, by + 80*Q);
+      for(let kk = 0; kk <= 8; kk++) x.lineTo(kk*W/8, by + (40 + hash(kk + id*9)*70)*Q); x.lineTo(W, by + T); x.lineTo(0, by + T); x.fill(); }
+  } else if(key === 'frost'){
+    g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'oklch(0.82 0.035 280)'); g.addColorStop(.5, 'oklch(0.86 0.03 70)'); g.addColorStop(1, 'oklch(0.74 0.04 250)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const T = 300*Q, sc = cam*.05, off = ((sc % T) + T) % T; x.fillStyle = 'oklch(0.66 0.03 250 / .6)';
+    for(let i = -1; i < Math.ceil(H/T) + 2; i++){ const by = i*T - off; x.beginPath(); x.moveTo(0, by + 220*Q); x.lineTo(W*.3, by + 170*Q); x.lineTo(W*.6, by + 210*Q); x.lineTo(W, by + 160*Q); x.lineTo(W, by + 240*Q); x.lineTo(0, by + 260*Q); x.fill(); }
+  } else {
+    const hw = leafBase();
+    g = x.createLinearGradient(W/2 - hw, 0, W/2 + hw, 0); g.addColorStop(0, 'oklch(0.44 0.1 145)'); g.addColorStop(.5, 'oklch(0.56 0.12 138)'); g.addColorStop(1, 'oklch(0.42 0.1 148)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    drawVeins(x, cam, .5); drawLeafMargin(x, cam);
+  }
+  x.globalCompositeOperation = key === 'window' ? 'lighter' : 'source-over';
+  const Y = 1600*Q;
+  for(const b of getBokeh(key)){
+    let y = b.y - cam*b.d; y = ((y % Y) + Y) % Y - 100*Q;
+    if(y < -60*Q || y > H + 60*Q) continue;
+    let a = b.a; if(b.tw != null) a *= .6 + .4*Math.sin(sceneT*1.3 + b.tw);
+    x.globalAlpha = a; const rr = b.r*2; x.drawImage(bokehSprite(b.c), b.x - rr/2, y - rr/2, rr, rr);
+  }
+  if(key === 'window' && g1head){ x.globalAlpha = g1head.a; x.drawImage(bokehSprite('oklch(0.95 0.04 90)'), g1head.x - 120*Q, H*.55 - 60*Q, 240*Q, 120*Q); }
+  x.globalAlpha = 1;
+  if(flash > 0){ x.globalCompositeOperation = 'lighter'; x.fillStyle = `rgba(200,210,255,${flash*.5})`; x.fillRect(0, 0, W, H); }
+  x.globalCompositeOperation = 'source-over';
+}
+function buildSceneLo(){ lctx.globalCompositeOperation = 'source-over'; lctx.drawImage(scene, 0, 0, sceneLo.width, sceneLo.height);
+  if(flash > 0 && !G1KEYS.has(env.key)){ lctx.globalCompositeOperation = 'lighter'; lctx.fillStyle = `rgba(200,210,255,${flash*.5})`; lctx.fillRect(0, 0, sceneLo.width, sceneLo.height); lctx.globalCompositeOperation = 'source-over'; } }
+
+/* ---------- the leaf ---------- */
+const leafBase = () => Math.min(W*.5 - 8*Q, 300*Q);
+function leafHalf(wy){
+  const base = leafBase() - 10*Q*Math.sin(wy*.004/Q);
+  if(tipY == null) return base;
+  const span = 1.5*H; if(wy < tipY - span) return base;
+  return base*Math.pow(clamp((tipY - wy)/span, 0, 1), .8);
+}
+function xB(wy, r){ if(env.leaf){ const h = leafHalf(wy); return [W/2 - h + r, W/2 + h - r]; } return [r, W - r]; }
+function drawVeins(x, cam, alpha){
+  x.save(); x.globalAlpha = alpha; x.strokeStyle = 'oklch(0.72 0.11 125)'; x.lineCap = 'round';
+  x.lineWidth = 6*Q; x.beginPath(); x.moveTo(W/2, 0); x.lineTo(W/2, H); x.stroke();
+  const sp = 150*Q, first = Math.floor(cam/sp) - 1; x.lineWidth = 2.2*Q;
+  for(let k = first; k < first + H/sp + 3; k++){
+    const wy = k*sp, y = wy - cam, hw = leafHalf(wy);
+    [-1, 1].forEach(sg => { x.beginPath(); x.moveTo(W/2, y); x.quadraticCurveTo(W/2 + sg*hw*.39, y + 40*Q, W/2 + sg*hw*1.03, y + 150*Q); x.stroke(); });
+  }
+  x.restore();
+}
+function drawLeafMargin(x, cam){
+  x.save(); x.fillStyle = 'oklch(0.2 0.04 155)'; const st = 20*Q;
+  x.beginPath(); x.moveTo(0, 0); for(let y = 0; y <= H + st; y += st) x.lineTo(W/2 - leafHalf(y + cam), y); x.lineTo(0, H + st); x.closePath(); x.fill();
+  x.beginPath(); x.moveTo(W, 0); for(let y = 0; y <= H + st; y += st) x.lineTo(W/2 + leafHalf(y + cam), y); x.lineTo(W, H + st); x.closePath(); x.fill();
+  x.restore();
+}
+function updateBeamsG1(dt){ for(const b of beams){ b.x += b.v*dt; const minX = -H*b.tilt - b.w, maxX = W + b.w; if(b.x > maxX) b.x = minX; if(b.x < minX) b.x = maxX; } }
+function beamK(x, sy){ let k = 0; for(const b of beams){ const bx = b.x + sy*b.tilt, d = Math.abs(x - bx)/(b.w*.5); if(d < 1) k = Math.max(k, smooth(1 - d)); } return k; }
+function drawBeamsG1(){
+  if(!env.sun || !beams.length) return;
+  ctx.save(); ctx.globalCompositeOperation = 'screen';
+  for(const b of beams){
+    const g = ctx.createLinearGradient(b.x - b.w/2, 0, b.x + b.w/2, 0);
+    g.addColorStop(0, 'rgba(255,230,150,0)'); g.addColorStop(.5, 'rgba(255,226,140,.26)'); g.addColorStop(1, 'rgba(255,230,150,0)');
+    ctx.fillStyle = g; ctx.save(); ctx.transform(1, 0, b.tilt, 1, 0, 0); ctx.fillRect(b.x - b.w/2, 0, b.w, H); ctx.restore();
+    for(let i = 0; i < 6; i++){ const my = (hash(i + b.w)*H + sceneT*12*Q*(1 + hash(i))) % H, mx = b.x + my*b.tilt + (hash(i*3 + b.w) - .5)*b.w*.7;
+      ctx.fillStyle = 'rgba(255,245,200,.55)'; ctx.fillRect(mx, my, 1.4*Q, 1.4*Q); }
+  }
+  ctx.restore();
+}
+
+/* ---------- steam on the glass ---------- */
+function fillFog(a){ const m = fog.mctx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = a; m.fillStyle = '#fff'; m.fillRect(0, 0, fog.mask.width, fog.mask.height); m.globalAlpha = 1; }
+function clearFog(){ fog.mctx.clearRect(0, 0, fog.mask.width, fog.mask.height); }
+function scrollFog(dy){
+  fog.acc += dy*FOGR; const n = Math.floor(fog.acc); if(n <= 0) return; fog.acc -= n;
+  const b = fog.bctx, w = fog.mask.width, h = fog.mask.height;
+  b.globalCompositeOperation = 'source-over'; b.globalAlpha = 1; b.clearRect(0, 0, w, h); b.drawImage(fog.mask, 0, -n);
+  b.fillStyle = '#fff'; b.fillRect(0, h - n, w, n);
+  const t = fog.mask; fog.mask = fog.buf; fog.buf = t; const tc = fog.mctx; fog.mctx = fog.bctx; fog.bctx = tc;
+}
+function eraseFog(x, y, r, a = 1){
+  const m = fog.mctx; m.globalCompositeOperation = 'destination-out'; m.globalAlpha = a;
+  m.drawImage(softDot, (x - r)*FOGR, (y - r)*FOGR, r*2*FOGR, r*2*FOGR);
+  m.globalAlpha = 1; m.globalCompositeOperation = 'source-over';
+}
+function regenFog(rate, dt){ const m = fog.mctx; m.globalCompositeOperation = 'source-over'; m.globalAlpha = clamp(rate*dt, 0, 1); m.fillStyle = '#fff'; m.fillRect(0, 0, fog.mask.width, fog.mask.height); m.globalAlpha = 1; }
+function composeFog(cfg, alpha){
+  const c = fog.cctx, w = fog.comp.width, h = fog.comp.height;
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.clearRect(0, 0, w, h);
+  c.drawImage(sceneLo, 0, 0, w, h);
+  c.globalAlpha = cfg.milkA; c.fillStyle = cfg.milk; c.fillRect(0, 0, w, h); c.globalAlpha = 1;
+  if(cfg.frost){ const T = 240*Q*FOGR, off = ((camera*FOGR) % T + T) % T; c.globalAlpha = .75; for(let y = -off; y < h; y += T) for(let x0 = 0; x0 < w; x0 += T) c.drawImage(frostTile, x0, y, T, T); c.globalAlpha = 1; }
+  c.globalCompositeOperation = 'destination-in'; c.drawImage(fog.mask, 0, 0);
+  c.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = alpha; ctx.drawImage(fog.comp, 0, 0, W, H); ctx.globalAlpha = 1;
+}
+function fogWrite(t, ty){
+  const m = fog.mctx; m.save(); m.globalCompositeOperation = 'destination-out'; m.globalAlpha = .5; m.fillStyle = '#000';
+  m.font = `500 ${t.s*Q*FOGR}px Caveat, "Segoe Print", cursive`; m.textAlign = 'center'; m.textBaseline = 'middle';
+  m.translate(W*.5*FOGR, ty*FOGR); m.rotate(-.05); m.fillText(t.t, 0, 0); m.restore();
+}
+function updateFog(dt){
+  const c = env.fog; if(!c) return;
+  const dy = camera - fog.cam; fog.cam = camera; if(dy > 0) scrollFog(dy);
+  regenFog(c.regen, dt);
+  const sy = player.y - camera, pr = radius(player.mass);
+  if(c.frost) eraseFog(player.x, sy, 34*Q + pr*1.3, .45);
+  eraseFog(player.x, sy, pr*1.35, 1);
+  for(const d of drops){
+    const r = radius(d.mass), dsy = d.y - camera; if(r < 2.5*S || dsy < -20 || dsy > H + 20) continue;
+    const moving = Math.abs(d.vy) > 15*S || Math.abs(d.vx) > 15*S;
+    if(c.frost){ if(moving) eraseFog(d.x, dsy - r*.2, r*.8, .5); }
+    else eraseFog(d.x, dsy - r*.2, r*(moving ? 1.25 : 1.2), moving ? .9 : .35);
+  }
+  for(const t of texts){ const ty = t.y - camera; if(ty > -80 && ty < H + 80) fogWrite(t, ty); }
+}
+
+/* ---------- rain hitting the pane ---------- */
+function ring(x, y, r, col = 'oklch(0.92 0.02 240)'){ rings.push({x, y, r, life: .7, max: .7, col}); }
+function updateRings(dt){ for(const r of rings) r.life -= dt; rings = rings.filter(r => r.life > 0); }
+function drawRings(){
+  for(const r of rings){ const u = 1 - r.life/r.max; ctx.strokeStyle = r.col; ctx.globalAlpha = (1 - u)*.5; ctx.lineWidth = 1.2*S;
+    ctx.beginPath(); ctx.ellipse(r.x, r.y - camera, Math.max(.1, r.r*easeOut4(u)), Math.max(.1, r.r*easeOut4(u)*.9), 0, 0, TAU); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+}
+function rainImpacts(dt){
+  if(!env.impacts) return; let n = poisson(env.impacts*dt);
+  while(n-- > 0){
+    const sy = rand(20, H - 20), wy = camera + sy;
+    if(sill && wy > sill.y - 30*S) continue;
+    const [lo, hi] = xB(wy, 6*S); if(hi <= lo) continue;
+    const x = rand(lo, hi), m = rand(1.8, 8), d = newDrop(x, wy, m); d.fade = 1; d.wobble = 1.3; d.vx = 0; d.vy = 5*S; drops.push(d);
+    ring(x, wy, radius(m)*2.6);
+    for(let i = 0; i < 3; i++) particles.push({x, y: wy, vx: rand(-60, 60)*S, vy: rand(-80, -10)*S, life: 0, max: rand(.2, .4), r: rand(.6, 1.4)*S, kind: 'spray'});
+    if(env.fog) eraseFog(x, sy, radius(m)*2.2, 1);
+    if(Math.random() < .55) sfx.tick((x/W)*2 - 1);
+  }
+}
+function shards(x, y, n, spd){ for(let i = 0; i < n; i++) particles.push({x, y, vx: rand(-1, 1)*spd*S, vy: rand(-1, .3)*spd*S, life: 0, max: rand(.4, .8), r: rand(1, 2.2)*S, kind: 'shard'}); }
+
+/* ---------- lightning ---------- */
+function updateBolt(dt){
+  if(flashQ > 0){ flashQ -= dt; if(flashQ <= 0) flash = Math.max(flash, .75); }
+  if(thunderT > 0){ thunderT -= dt; if(thunderT <= 0){ sfx.thunder(thunderNear); shake = Math.max(shake, thunderNear ? 9 : 4.5); } }
+  if(env.bolt === undefined || chapterTravel/env.len < env.bolt) return;
+  boltClock -= dt;
+  if(boltClock <= 0){ flash = 1; flashQ = .13; thunderNear = Math.random() < .4; thunderT = thunderNear ? rand(.4, .9) : rand(1.4, 2.6); boltClock = rand(16, 30); }
+}
+
+/* ---------- the wiper (game 1: shadow shows its reach) ---------- */
+function wiperGeoG1(side){
+  const px = side < 0 ? -40*Q : W + 40*Q, py = H + 150*Q;
+  const pY = player.y - camera, dy = py - pY, safeW = W*.35;
+  return {side, px, py, amax: Math.atan2(dy, safeW + 40*Q), L: Math.hypot(W + 90*Q, H + 160*Q) + 30*Q};
+}
+function angOf(g, x, sy){ return g.side < 0 ? Math.atan2(g.py - sy, x - g.px) : Math.atan2(g.py - sy, g.px - x); }
+function inWedge(g, x, sy, pad){ const a = angOf(g, x, sy); return a >= -.02 && a <= g.amax + pad; }
+function updateWiper(dt){
+  const wp = wiper; if(!wp) return;
+  wiperWet = Math.max(0, wiperWet - dt);
+  if(wp.state === 'idle'){
+    if(state !== 'playing' || sill) return;
+    wp.next -= dt;
+    if(wp.next <= 0){ wp.state = 'warn'; wp.t = 0; wp.side = -wp.side; wp.geo = wiperGeoG1(wp.side); wp.tick = 0; wp.a = 0; wp.hit = false; wp.shave = false;
+      showHintOnce('wiper', 'The wiper is coming', 'its shadow shows where it will reach'); }
+  } else if(wp.state === 'warn'){
+    wp.t += dt; wp.tick -= dt; if(wp.tick <= 0){ sfx.wiperTick(); wp.tick = .42; }
+    if(wp.t > 2.5){ wp.state = 'sweep'; wp.t = 0; sfx.wiper(); shake = Math.max(shake, 3); }
+  } else if(wp.state === 'sweep'){
+    wp.t += dt; const u = clamp(wp.t/1.5, 0, 1), g = wp.geo, prev = wp.a;
+    wp.a = g.amax*(u < .5 ? easeOut4(u*2) : 1 - smooth((u - .5)*2));
+    const lo = Math.min(prev, wp.a) - .01, hi = Math.max(prev, wp.a) + .01;
+    for(const d of drops){ const sy = d.y - camera; if(sy < -30 || sy > H + 30) continue; const a = angOf(g, d.x, sy); if(a >= lo && a <= hi){ d.dead = true; if(Math.random() < .4) spray(d.x, d.y, 2, 60); } }
+    drops = drops.filter(d => !d.dead);
+    if(Math.random() < .5) trails = trails.filter(tr => { const a = angOf(g, tr.x, tr.y - camera); return !(a >= lo && a <= hi); });
+    const psy = player.y - camera, pa = angOf(g, player.x, psy), dist = Math.hypot(player.x - g.px, psy - g.py), pr = radius(player.mass), padA = pr/dist;
+    if(!wp.hit && pa >= lo - padA && pa <= hi + padA && state === 'playing'){
+      wp.hit = true; const lost = player.mass*.45; player.mass -= lost;
+      const bx = g.side < 0 ? Math.cos(wp.a) : -Math.cos(wp.a), by = -Math.sin(wp.a);
+      for(let i = 0; i < 5; i++){ const k = rand(-60, 60)*Q, d = newDrop(clamp(player.x + bx*k, 10, W - 10), player.y + by*k, lost*.12); d.fade = 1; drops.push(d); }
+      player.vx += (g.side < 0 ? -1 : 1)*300*S; player.vy += 80*S; player.wobble = 1.6; shake = 12; sfx.thwack(); bumpHud('hurt');
+      pulse(player.x, player.y, '\u2212' + Math.round(lost), 'down'); ring(player.x, player.y, pr*3); spray(player.x, player.y, 14, 160);
+      showHintOnce('wiper2', 'It never reaches the high corner', 'wait there, or split to dash');
+    }
+    if(!wp.shave && u > .48 && u < .56 && !wp.hit){ const margin = (pa - g.amax)*dist; if(margin > 0 && margin < pr + 14*Q){ wp.shave = true; unlock('shave'); pulse(player.x, player.y - 20*S, 'close', 'up'); } }
+    if(u >= 1){ wp.state = 'idle'; wp.next = rand(11, 16); wiperWet = 5; wiperLast = g; }
+  }
+}
+function drawWiper(){
+  const wp = wiper; if(!wp || wp.state === 'idle' || !wp.geo) return; const g = wp.geo;
+  const dirv = a => [g.side < 0 ? Math.cos(a) : -Math.cos(a), -Math.sin(a)];
+  if(wp.state === 'warn'){
+    const u = clamp(wp.t/2.5, 0, 1), [ex, ey] = dirv(g.amax), [rx, ry] = dirv(0);
+    ctx.save(); ctx.globalAlpha = .06 + u*.2 + Math.sin(wp.t*15)*.02*u;
+    ctx.fillStyle = 'oklch(0.08 0.02 260)'; ctx.beginPath(); ctx.moveTo(g.px, g.py); ctx.lineTo(g.px + rx*g.L, g.py + ry*g.L);
+    for(let k = 0; k <= 10; k++){ const [dx, dy] = dirv(k/10*g.amax); ctx.lineTo(g.px + dx*g.L, g.py + dy*g.L); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = `rgba(230,236,255,${.15 + u*.5})`; ctx.setLineDash([6*Q, 8*Q]); ctx.lineWidth = 1.5*Q;
+    ctx.beginPath(); ctx.moveTo(g.px, g.py); ctx.lineTo(g.px + ex*g.L, g.py + ey*g.L); ctx.stroke(); ctx.restore();
+  } else {
+    ctx.save();
+    for(let gh = 3; gh >= 0; gh--){
+      const a = wp.a - (wp.t < .75 ? 1 : -1)*gh*.035, [dx, dy] = dirv(a);
+      ctx.globalAlpha = gh ? .12 : 1; ctx.strokeStyle = 'oklch(0.1 0.01 260)'; ctx.lineCap = 'round';
+      ctx.lineWidth = 9*Q; ctx.beginPath(); ctx.moveTo(g.px + dx*80*Q, g.py + dy*80*Q); ctx.lineTo(g.px + dx*g.L, g.py + dy*g.L); ctx.stroke();
+      if(!gh){ ctx.lineWidth = 3*Q; ctx.strokeStyle = 'oklch(0.35 0.01 260)'; ctx.beginPath(); ctx.moveTo(g.px, g.py); ctx.lineTo(g.px + dx*g.L*.9, g.py + dy*g.L*.9); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
+}
+
+/* ---------- chapter setup ---------- */
+function chapterInit(){
+  chStartY = player.y; sill = null; gatherT = null; fallT = null; rime = 0; frozenSolid = false; crack = 0; rings = []; player.forceStretch = 0;
+  tipY = env.leaf ? chStartY + env.len*S + H*.45 : null; leafSillY = tipY != null ? tipY - H*.06 : 0;
+  pollenY = chStartY + rand(.3, .82)*env.len*S; pollenDone = false;
+  const L = env.len*S, touch = matchMedia('(pointer: coarse)').matches;
+  let tx = [];
+  if(env.key === 'window') tx = [[.05, touch ? 'drag to steer' : '\u2190  steer  \u2192', 40], [.19, 'heavier falls faster', 34], [.34, 'wet paths are quicker', 34], [.5, touch ? 'tap to split' : 'click to split', 34], [.74, '\u2661', 64]];
+  if(env.key === 'frost') tx = [[.2, 'good morning', 40], [.46, 'keep moving', 32], [.72, '\u2744 \u2661 \u2744', 50]];
+  texts = tx.map(([f, t, s]) => ({y: chStartY + H*.4 + f*L, t, s}));
+  if(env.fog) fillFog(1); else clearFog(); fog.cam = camera; fog.acc = 0;
+  wiper = env.wipe ? {state: 'idle', next: 8, side: 1, a: 0} : null; wiperWet = 0; wiperLast = null;
+  boltClock = rand(6, 12); flashQ = 0; thunderT = -1;
+  beams = env.sun ? [0, 1, 2].map(k => ({x: W/2 + (k - 1)*200*Q - 60*Q, w: rand(60, 95)*Q, v: rand(9, 16)*Q*(k % 2 ? -1 : 1), tilt: .42})) : [];
+  g1head = null; headNext = rand(4, 9);
+  if(env.washMe){ const w = 210*Q, h = 120*Q; patches.push({type: 'dirt', x: W*.5, y: chStartY + .24*L, r: w*.45, stretch: h/w, rotation: 0, seed: 1, spr: makePatch('dirt', w, h, 'wash me'), w, h}); }
+  setPad(CHORDS[envIndex]);
+}
+function pollenSpawn(){
+  if(pollenDone || sill || camera + H*1.5 < pollenY) return;
+  pollenDone = true; const [lo, hi] = xB(pollenY, 14*S); if(hi <= lo) return;
+  const x = Math.random() < .5 ? lo + rand(10, 40)*Q : hi - rand(10, 40)*Q;
+  const d = newDrop(clamp(x, lo, hi), pollenY, 8, 'pollen'); d.vy = 0; drops.push(d);
+}
+function sunVapor(s, dt){ if(!s || !s.sun || s.sun < .3) return; if(Math.random() < s.sun*dt*14){ const r = radius(player.mass); particles.push({x: player.x + rand(-r, r), y: player.y - r, vx: rand(-6, 6)*S, vy: rand(-40, -20)*S, life: 0, max: rand(.6, 1), r: rand(2, 4)*S, kind: 'vapor', seed: rand(0, 9)}); } }
+
+/* ---------- player extras: status arcs, rime, pollen ---------- */
+function drawHeroExtras(){
+  const sy = player.y - camera, r = radius(player.vMass || player.mass);
+  const fx = [['ice', 'oklch(0.92 0.05 220)'], ['charge', 'oklch(0.75 0.17 300)'], ['grime', 'oklch(0.7 0.1 70)'], ['soap', 'oklch(0.86 0.12 330)']];
+  let k = 0; ctx.save();
+  for(const [key, col] of fx){
+    if(effects[key] <= 0) continue; const frac = clamp(effects[key]/(effectMax[key] || 1), 0, 1);
+    ctx.strokeStyle = col; ctx.lineWidth = 1.6*S; ctx.globalAlpha = .85; ctx.beginPath();
+    ctx.arc(player.x, sy, r + (6 + k*4)*S, -Math.PI/2, -Math.PI/2 + TAU*frac); ctx.stroke(); k++;
+  }
+  ctx.globalAlpha = 1;
+  if(rime > .05 || frozenSolid){
+    const a = frozenSolid ? 1 : rime; ctx.globalAlpha = a*.9; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1*S;
+    const n = Math.floor(6 + a*10);
+    for(let i = 0; i < n; i++){ const ang = i/n*TAU + hash(i)*.4, L = (r*.6 + 6*S)*(.5 + hash(i + 3)*.8)*a;
+      ctx.beginPath(); ctx.moveTo(player.x + Math.cos(ang)*r*.9, sy + Math.sin(ang)*r*.9); ctx.lineTo(player.x + Math.cos(ang)*(r + L), sy + Math.sin(ang)*(r + L)); ctx.stroke(); }
+    if(frozenSolid){
+      ctx.fillStyle = 'rgba(235,248,255,.35)'; ctx.beginPath(); ctx.arc(player.x, sy, r*1.35, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(40,60,90,.6)'; ctx.lineWidth = 1.1*S; ctx.beginPath();
+      const cracks = Math.floor(crack*5);
+      for(let i = 0; i < cracks; i++){ const ang = hash(i*7)*TAU; ctx.moveTo(player.x, sy); ctx.lineTo(player.x + Math.cos(ang)*r*1.3, sy + Math.sin(ang)*r*1.3); }
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  if(run && run.pollen && run.pollen.length) drawPollenDots(player.x, sy, r);
+}
+function drawPollenDots(x, y, r){ run.pollen.forEach((ci, i) => { const a = sceneT + i*2; ctx.fillStyle = POLLEN_COLORS[ci]; ctx.beginPath(); ctx.arc(x + Math.cos(a)*r*.4, y + Math.sin(a)*r*.3, 2.2*S, 0, TAU); ctx.fill(); }); }
+function drawChargeArcs(){
+  if(effects.charge <= 0) return;
+  const sy = player.y - camera; ctx.save(); ctx.strokeStyle = 'rgba(200,170,255,.6)'; ctx.lineWidth = 1*S; ctx.beginPath();
+  for(const d of drops){ if(!d.pulled) continue; const dsy = d.y - camera; let px = player.x, py = sy; ctx.moveTo(px, py);
+    for(let s = 1; s <= 4; s++){ px = lerp(player.x, d.x, s/4) + (s < 4 ? rand(-4, 4)*Q : 0); py = lerp(sy, dsy, s/4) + (s < 4 ? rand(-4, 4)*Q : 0); ctx.lineTo(px, py); } }
+  ctx.stroke(); ctx.restore();
+}
+function drawRail(){
+  const x = W - 12*S, y0 = H*.3, y1 = H*.7, gap = 6*S, segH = (y1 - y0 - gap*3)/4;
+  const base = env.theme === 'cold' ? '40,60,95' : '235,240,255';
+  const prog = sill ? 1 : clamp(chapterTravel/env.len, 0, 1);
+  for(let i = 0; i < 4; i++){
+    const sy = y0 + i*(segH + gap);
+    ctx.fillStyle = `rgba(${base},.18)`; ctx.fillRect(x, sy, 2*S, segH);
+    const f = i < envIndex ? 1 : i === envIndex ? prog : 0;
+    if(f > 0){ ctx.fillStyle = `rgba(${base},.62)`; ctx.fillRect(x, sy, 2*S, segH*f); }
+    if(i === envIndex){ ctx.fillStyle = `rgba(${base},.92)`; ctx.beginPath(); ctx.arc(x + 1*S, sy + segH*f, 2.6*S, 0, TAU); ctx.fill(); }
+  }
+}
+
+/* ---------------- Surface & physics ---------------- */
+function rebuildTrailGrid(){
+  trailGrid.clear(); trailCell = 32 * S;
+  for(const t of trails){ if(t.age < .2) continue; const k = Math.floor(t.y / trailCell); let a = trailGrid.get(k); if(!a){ a = []; trailGrid.set(k, a); } a.push(t); }
+}
+function wetness(x, y){
+  const wv = wiperWet > 0 && wiperLast && inWedge(wiperLast, x, y - camera, 0) ? .85*clamp(wiperWet/3, 0, 1) : 0;
+  if(env.lotus) return .08;
+  let v = .15 + .1*Math.sin(x/(120*S))*Math.cos(y/(150*S)) + .05*Math.sin(x/(40*S) + y/(50*S));
+  const k = Math.floor(y / trailCell);
+  for(let j = k - 1; j <= k + 1; j++){
+    const a = trailGrid.get(j); if(!a) continue;
+    for(const t of a){
+      const dx = x - t.x, dy = y - t.y, rr = t.r * 2.5;
+      if(dx > -rr && dx < rr && dy > -25*S && dy < 25*S){ const d = Math.hypot(dx, dy); if(d < rr) v = Math.max(v, 1.85*(1 - t.age/TL)*(1 - d/rr)); }
+    }
+  }
+  return clamp(Math.max(v, wv), 0, 1);
+}
+const veinX = y => W*.5 + Math.sin(y/(520*S))*W*.16 + Math.sin(y/(190*S) + 1)*W*.03;
+const VEIN_SP = () => 300 * S;
+function sideVein(k){ const y0 = k * VEIN_SP(), x0 = veinX(y0), side = (k & 1) ? 1 : -1; return {x0, y0, x1: x0 + side*W*.75, y1: y0 + W*.45}; }
+function segClosest(px, py, v){ const dx = v.x1 - v.x0, dy = v.y1 - v.y0, l2 = dx*dx + dy*dy; const t = clamp(((px - v.x0)*dx + (py - v.y0)*dy)/l2, 0, 1); return {x: v.x0 + dx*t, y: v.y0 + dy*t}; }
+
+function surface(x, y){
+  const s = {f: 1, e: 1, gain: 0, type: 'none', px: 0};
+  for(const p of patches){
+    const dx = x - p.x, dy = (y - p.y) / p.stretch;
+    if(dx*dx + dy*dy < (p.r*1.05)**2){
+      s.type = p.type;
+      if(p.type === 'dry'){ s.f = 3; s.e = 3.4; }
+      else if(p.type === 'wet'){ s.f = .3; s.e = .2; s.gain = 12; }
+      else if(p.type === 'oil'){ s.f = .2; }
+      else if(p.type === 'dirt'){ s.f = 2.6; s.e = 1.7; }
+      else if(p.type === 'rime'){ s.f = 2.1; s.gain = -26; }
+      else if(p.type === 'frostp'){ s.f = 2.4; s.frost = clamp(1 - (dx*dx + dy*dy)/((p.r*1.05)**2), 0, 1); }
+      break;
+    }
+  }
+  if(env.veins){
+    const mx = veinX(y), dm = Math.abs(x - mx);
+    if(dm < 16*S){ s.f *= .4; s.e *= .55; s.px = clamp((mx - x)*16, -240*S, 240*S); if(s.type === 'none') s.type = 'vein'; }
+    else {
+      const k = Math.floor(y / VEIN_SP());
+      for(let j = k - 2; j <= k; j++){
+        const v = sideVein(j); if(y < v.y0 || y > v.y1) continue;
+        const c = segClosest(x, y, v), d = Math.hypot(x - c.x, y - c.y);
+        if(d < 11*S){ s.f *= .5; s.e *= .6; s.px = clamp((c.x - x)*14, -200*S, 200*S); if(s.type === 'none') s.type = 'vein'; break; }
+      }
+    }
+  }
+  if(env.leaf && Math.abs(x - W*.5) < 18*Q){ s.f *= .5; s.e *= .6; if(s.type === 'none') s.type = 'vein'; }
+  if(env.sun){ const k = beamK(x, y - camera); if(k > 0){ s.e *= 1 + 2.6*k; s.sun = k; if(s.type === 'none' || s.type === 'vein') s.type = 'sun'; } }
+  if(env.sunbeams){ const sy = y - camera; for(const b of beams){ const bx = b.x + sy*.32; if(Math.abs(x - bx) < b.w*.5){ s.e *= 3; if(s.type === 'none' || s.type === 'vein') s.type = 'sun'; } } }
+  return s;
+}
+
+function steerInput(d){
+  let steer = 0, lift = 0;
+  if(input.keys.size){
+    steer = (input.keys.has('ArrowRight') || input.keys.has('d') ? 1 : 0) - (input.keys.has('ArrowLeft') || input.keys.has('a') ? 1 : 0);
+    lift = (input.keys.has('ArrowDown') || input.keys.has('s') ? 1 : 0) - (input.keys.has('ArrowUp') || input.keys.has('w') ? 1 : 0);
+  } else if(controlType === 'tilt' && tiltActive){ steer = clamp(tiltX/25, -1, 1); lift = clamp((tiltY - 30)/25, -1, 1); }
+  else if(input.active){
+    steer = input.touch ? clamp((input.x - input.originX)/(75*S), -1, 1) : clamp((input.x - d.x)/(100*S), -1, 1);
+    lift = input.touch ? clamp((input.y - input.originY)/(95*S), -1, 1) : clamp((input.y - (d.y - camera))/(H*.4), -1, 1);
+  }
+  if(steer) input.lastDir = Math.sign(steer);
+  return {steer, lift};
+}
+
+function forces(d, dt, hero){
+  const wet = wetness(d.x, d.y); d.wet = wet;
+  const s = surface(d.x, d.y); d.surf = s;
+  const heavy = Math.sqrt(Math.max(1, d.mass)/65);
+  let fr = (lerp(4.0, .8, wet)/(1 + heavy*.6)) * s.f * env.friction;
+  let steerMul = 1, gMul = env.gravity, vxMax = 300*S;
+  if(hero){
+    if(effects.ice > 0){ fr *= .38; steerMul *= .5; }
+    if(effects.soap > 0){ fr *= .1; steerMul *= 1.1; vxMax = 520*S; gMul *= 1.12; }
+    if(d.dash > 0){ vxMax = 580*S; d.dash -= dt; }
+  } else if(d.kind === 'soap') gMul *= .55;
+  const ws = env.lotus ? 0 : 180;
+  let ax = wind*(hero ? 38 : 25)*S + (wetness(d.x + 12*S, d.y) - wetness(d.x - 12*S, d.y))*ws*S + s.px;
+  let ay = ((150 + heavy*200)*S + wet*450*S) * gMul;
+  if(!hero) ax += Math.sin(d.id*123 + runTime*1.5)*30*S;
+  if(env.leaf){ const off = d.x - W*.5, e = leafHalf(d.y) - Math.abs(off); if(e < 46*Q) ax -= Math.sign(off)*(46*Q - e)*16; if(Math.abs(off) < 18*Q) ax -= off*6; }
+  if(d.kind === 'pollen'){ ay *= .12; ax *= .3; }
+  if(hero && state === 'playing'){ const c = steerInput(d); ax += c.steer*450*S/(.6 + heavy*.6)*steerMul; ay += c.lift*80*S; }
+  const damp = Math.exp(-fr*dt);
+  d.vx = (d.vx + ax*dt)*damp; d.vy = (d.vy + ay*dt)*damp;
+  d.vx = clamp(d.vx, -vxMax, vxMax); d.vy = clamp(d.vy, d.pulled ? -260*S : 5*S, 1200*S);
+  d.x += d.vx*dt; d.y += d.vy*dt;
+  const r = radius(d.mass);
+  const [lo, hi] = xB(d.y, r);
+  if(hi <= lo) d.x = W*.5;
+  else {
+    if(d.x < lo){ d.x = lo; d.vx = Math.abs(d.vx)*.25; if(hero && d.vx > 60*S) d.wobble = Math.max(d.wobble || 0, .5); }
+    if(d.x > hi){ d.x = hi; d.vx = -Math.abs(d.vx)*.25; }
+  }
+}
+
+function newDrop(x, y, m, kind){
+  const d = {x: x ?? rand(12, W - 12), y: y ?? camera + rand(H*.1, H*1.8), mass: m ?? rand(3, 12), vx: rand(-5, 5)*S, vy: rand(10, 50)*S, phase: rand(0, tau), wet: 0, id: dropIds++, fade: 0, kind: kind || null, wobble: 0};
+  if(env.leaf){ const [lo, hi] = xB(d.y, radius(d.mass)); d.x = hi > lo ? clamp(d.x, lo, hi) : W*.5; }
+  return d;
+}
+function seedDrops(offscreenOnly){
+  drops = []; const n = Math.floor(40 + W/20);
+  for(let i = 0; i < n; i++){ const d = newDrop(undefined, offscreenOnly ? camera + rand(H*.75, H*2) : undefined, rand(2, 5)); if(!offscreenOnly) d.fade = 1; drops.push(d); }
+  for(let i = 0; i < 7; i++) drops.push(newDrop(clamp(player.x + rand(-W*.25, W*.25), 20, W - 20), player.y + (90 + i*80)*S, rand(4, 9)));
+}
+
+/* ---------------- Effects, merging, splitting ---------------- */
+const KIND_COL = {ice: [93, .04, 225], soap: [92, .05, 300], charge: [78, .12, 300], grime: [55, .08, 65]};
+function pulse(x, y, text, tone){ pulses.push({x, y, age: 0, text, tone: tone || 'up'}); }
+function spray(x, y, n, spd, col){ for(let i = 0; i < n; i++){ const a = rand(0, tau), v = rand(.3, 1)*spd*S; particles.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v - spd*.3*S, life: 0, max: rand(.35, .7), r: rand(.8, 2.2)*S, kind: 'spray', col}); } }
+function bumpHud(cls){ const el = $('water-indicator'); el.classList.remove('bump', 'hurt'); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 180); }
+
+function applyKind(kind, m){
+  const dur = {ice: 8, soap: 6, charge: 7}[kind] * P.fx;
+  if(kind === 'grime'){
+    const loss = Math.round(player.mass*.28); player.mass -= loss; effects.grime = 6; effectMax.grime = 6; run.grimeTouched = true; run.chapterGrime = true;
+    pulse(player.x, player.y, '\u2212' + loss, 'down'); shake = Math.max(shake, 4); bumpHud('hurt'); sfx.grime(); spray(player.x, player.y, 10, 90, KIND_COL.grime);
+    showHintOnce('grimehit', 'Grime is inside you', 'tap to split it back out');
+  } else {
+    effects[kind] = dur; effectMax[kind] = dur; if(kind === 'charge') run.chargeCount = 0; if(kind === 'soap') run.soapStart = travel;
+    const pr = radius(player.mass); ring(player.x, player.y, kind === 'charge' ? 120*Q : pr*2.5, {ice: 'oklch(0.93 0.05 220)', soap: 'oklch(0.85 0.12 330)', charge: 'oklch(0.75 0.16 300)'}[kind]);
+    sfx[kind](); spray(player.x, player.y, 12, 110, KIND_COL[kind]);
+  }
+}
+
+function absorbInto(a, b){
+  const total = a.mass + b.mass;
+  a.vx = (a.vx*a.mass + b.vx*b.mass)/total; a.vy = (a.vy*a.mass + b.vy*b.mass)/total;
+  a.mass = Math.min(400, total); a.wobble = Math.min(1.4, (a.wobble || 0) + .4 + b.mass/a.mass);
+}
+
+function playerAbsorb(b){
+  if(b.kind === 'pollen'){ absorbInto(player, b); collected++; run.pollen.push(envIndex); sfx.chime(0); ring(b.x, b.y, 60*Q, POLLEN_COLORS[envIndex]); spray(b.x, b.y, 10, 80, [90, .12, 90]); toast('\u273f pollen, carried inside you'); showHintOnce('pollen2', 'Bring it to the soil', 'and something will bloom'); return; }
+  absorbInto(player, b); collected++;
+  if(b.own){ run.ownCatches++; unlock('mitosis'); }
+  if(effects.charge > 0){ run.chargeCount++; if(run.chargeCount >= 8) unlock('cling'); }
+  if(b.kind) applyKind(b.kind, b.mass);
+  else { pulse(b.x, b.y, '+' + Math.max(1, Math.round(b.mass)), 'up'); sfx.absorb(b.mass/65, (b.x/W)*2 - 1); if(b.mass > 14) bumpHud('bump'); }
+  spray((player.x + b.x)/2, (player.y + b.y)/2, Math.min(8, 2 + b.mass/4 | 0), 60);
+  if(b.mass > 20) shake = Math.max(shake, 1.5);
+}
+
+function split(dirX){
+  if(state !== 'playing' || frozenSolid) return;
+  if(splitCd > 0) return;
+  if(player.mass < 22){ player.wobble = .7; sfx.deny(); return; }
+  const frag = player.mass * P.splitCost; player.mass -= frag;
+  dirX = dirX || input.lastDir || Math.sign(player.vx) || 1;
+  const r = radius(player.mass), fr = radius(frag);
+  const f = newDrop(player.x - dirX*(r + fr + 3*S), player.y - r*.1, frag); f.fade = 1;
+  f.vx = -dirX*140*S + player.vx*.2; f.vy = player.vy*.85; f.noMerge = .75; f.own = true;
+  if(effects.grime > 0){ f.kind = 'grime'; f.own = false; effects.grime = 0; pulse(player.x, player.y - r, 'clean', 'up'); }
+  drops.push(f);
+  player.vx = dirX*560*S; player.dash = .3; player.vy *= .72; player.wobble = 1.3; splitCd = P.splitCd;
+  spray(player.x - dirX*r, player.y, 9, 120); sfx.split(); run.splits++;
+  if(save.hints.split !== 2){ save.hints.split = 2; persist(); hideHint(); }
+}
+
+/* ---------------- Events ---------------- */
+function updateGust(dt){
+  if(!gust){ gustClock -= dt; if(gustClock <= 0){ gust = {phase: 'warn', t: 0, dir: Math.random() < .5 ? -1 : 1}; sfx.whoosh(); } return 0; }
+  gust.t += dt;
+  if(gust.phase === 'warn'){ if(gust.t > 1.5){ gust.phase = 'blow'; gust.t = 0; } return 0; }
+  const k = Math.sin(Math.PI*clamp(gust.t/2.4, 0, 1));
+  if(gust.t > 2.4){ gust = null; gustClock = rand(env.gust[0], env.gust[1]); return 0; }
+  return gust.dir*1.7*Math.sqrt(k);
+}
+function updateLightning(dt){
+  lightningClock -= dt;
+  if(lightningClock <= 0){
+    lightningClock = rand(env.lightning[0], env.lightning[1]); flash = 1; run.flash2 = runTime + .13; thunderAt = runTime + rand(.6, 1.5);
+    for(let i = 0; i < 2; i++){ const d = newDrop(rand(30, W - 30), camera + H*rand(.9, 1.4), rand(7, 10), 'charge'); drops.push(d); }
+  }
+  if(run.flash2 && runTime > run.flash2){ flash = Math.max(flash, .7); run.flash2 = 0; }
+  if(thunderAt > 0 && runTime > thunderAt){ thunderAt = -1; shake = Math.max(shake, 5); sfx.thunder(); }
+}
+function updateMist(dt){
+  mistClock -= dt; if(mistT > 0) mistT -= dt;
+  if(mistClock <= 0){
+    mistClock = rand(env.mist[0], env.mist[1]); mistT = 2.2; sfx.hiss();
+    const cx = rand(W*.2, W*.8);
+    for(let i = 0; i < 18; i++){ const d = newDrop(clamp(cx + rand(-W*.35, W*.35), 10, W - 10), camera + H*rand(.55, 1.25), rand(2, 5)); drops.push(d); }
+    for(let i = 0; i < 26; i++) particles.push({x: cx + rand(-W*.4, W*.4), y: camera + H*rand(.5, 1.1), vx: rand(-15, 15)*S, vy: rand(-25, -5)*S, life: 0, max: rand(1.6, 2.6), r: rand(20, 45)*S, kind: 'mist'});
+  }
+}
+function initBeams(){ beams = []; for(let i = 0; i < 3; i++) beams.push({x: W*(.15 + i*.38) + rand(-40, 40)*S, v: rand(10, 22)*S*(Math.random() < .5 ? -1 : 1), w: rand(46, 80)*S}); }
+function updateBeams(dt){ for(const b of beams){ b.x += b.v*dt; if(b.x < -W*.25 || b.x > W*1.05) b.v *= -1; } }
+
+/* ---------------- Frost buffer ---------------- */
+let frostC = null, frostX = null, frostTmp = null, frostCam = 0, frostPat = null; const FR = .35;
+function makeFrostPattern(){
+  const c = document.createElement('canvas'); c.width = c.height = 96; const x = c.getContext('2d');
+  x.fillStyle = `oklch(95% .012 230)`; x.fillRect(0, 0, 96, 96);
+  for(let i = 0; i < 140; i++){ x.fillStyle = `oklch(${rand(88, 100)}% .01 230 / ${rand(.2, .7)})`; x.beginPath(); x.arc(rand(0, 96), rand(0, 96), rand(.5, 2.2), 0, tau); x.fill(); }
+  x.strokeStyle = `oklch(99% .005 230 / .5)`; x.lineWidth = .6;
+  for(let i = 0; i < 14; i++){ const cx = rand(0, 96), cy = rand(0, 96), l = rand(4, 12); for(let a = 0; a < 6; a++){ x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(a*tau/6)*l, cy + Math.sin(a*tau/6)*l); x.stroke(); } }
+  return c;
+}
+function frostReset(){
+  frostC = document.createElement('canvas'); frostC.width = Math.ceil(W*FR); frostC.height = Math.ceil(H*FR);
+  frostTmp = document.createElement('canvas'); frostTmp.width = frostC.width; frostTmp.height = frostC.height;
+  frostX = frostC.getContext('2d'); if(!frostPat) frostPat = makeFrostPattern();
+  frostX.globalAlpha = .86; frostX.fillStyle = frostX.createPattern(frostPat, 'repeat') || `oklch(95% .012 230)`; frostX.fillRect(0, 0, frostC.width, frostC.height); frostX.globalAlpha = 1;
+  frostCam = camera;
+}
+function frostUpdate(dt){
+  if(!frostC) frostReset();
+  const fw = frostC.width, fh = frostC.height, pat = frostX.createPattern(frostPat, 'repeat') || `oklch(95% .012 230)`;
+  const dy = (camera - frostCam)*FR;
+  if(dy >= 1){
+    const k = Math.floor(dy), t = frostTmp.getContext('2d');
+    t.clearRect(0, 0, fw, fh); t.drawImage(frostC, 0, 0); frostX.clearRect(0, 0, fw, fh); frostX.drawImage(frostTmp, 0, -k);
+    frostX.globalAlpha = .86; frostX.fillStyle = pat; frostX.fillRect(0, fh - k, fw, k); frostX.globalAlpha = 1; frostCam += k/FR;
+  }
+  frostX.globalAlpha = Math.min(1, .5*dt); frostX.fillStyle = pat; frostX.fillRect(0, 0, fw, fh); frostX.globalAlpha = 1;
+  frostX.globalCompositeOperation = 'destination-out';
+  const clear = (x, y, r, a) => { const sx = x*FR, sy = (y - camera)*FR, sr = r*FR; if(sy < -sr || sy > fh + sr) return; const g = frostX.createRadialGradient(sx, sy, 0, sx, sy, sr); g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(.6, `rgba(0,0,0,${a*.6})`); g.addColorStop(1, 'rgba(0,0,0,0)'); frostX.fillStyle = g; frostX.fillRect(sx - sr, sy - sr, sr*2, sr*2); };
+  const pr = radius(player.mass); clear(player.x, player.y, pr*2.4 + 78*S, .5); clear(player.x - player.vx*.08, player.y - player.vy*.08, pr*1.6 + 30*S, .6);
+  for(const d of drops) if(d.kind !== 'grime') clear(d.x, d.y, radius(d.mass)*1.5 + 4*S, .12);
+  frostX.globalCompositeOperation = 'source-over';
+}
+
+/* ---------------- Hints, toasts, moments ---------------- */
+let hintTimer = 0, hintKey = null, toastTimer = 0;
+function showHint(key, title, sub, dur = 4.5){ const el = $('hint'); el.innerHTML = `${title}${sub ? `<small>${sub}</small>` : ''}`; el.classList.add('show'); hintTimer = dur; hintKey = key; }
+function hideHint(){ $('hint').classList.remove('show'); hintTimer = 0; hintKey = null; }
+function showHintOnce(key, title, sub, dur){ if(save.hints[key]) return; save.hints[key] = 1; persist(); showHint(key, title, sub, dur); }
+function toast(text){ const el = $('toast'); el.textContent = text; el.classList.add('show'); toastTimer = 2.6; }
+function unlock(id){ if(save.moments[id]) return; save.moments[id] = Date.now(); persist(); const m = MOMENTS.find(x => x[0] === id); if(m){ toast('\u2726 ' + m[1]); sfx.chime(1); } }
+
+/* ---------------- Flow ---------------- */
+let currentScreen = 'screen-menu';
+function showScreen(id){
+  currentScreen = id;
+  ['screen-menu', 'screen-info', 'screen-playing', 'screen-paused', 'screen-ended'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+  const inGame = id === 'screen-playing' || id === 'screen-paused';
+  $('record-badge').classList.toggle('hidden', !(id === 'screen-menu' || id === 'screen-ended'));
+  if(inGame) $('settings-container').classList.remove('open');
+}
+function setTheme(t){ document.body.classList.remove('night', 'cold', 'leaf', 'leaf2'); if(t) document.body.classList.add(t); }
+function setEnv(i, repaint = true){
+  envIndex = i; env = ENVS[i]; TL = env.trailLife;
+  if(repaint && !G1KEYS.has(env.key)) paintScene(env.key, scene);
+  setTheme(env.theme);
+  patches = []; lastPatchCamera = camera; specialClock = rand(4, 7);
+  wiper = null; gust = null; gustClock = env.gust ? rand(5, 8) : 0;
+  beams = []; frostC = null;
+  initStreaks(); initBokeh();
+  figure = null; headlight = null; headClock = rand(3, 6);
+  audioEnv();
+}
+function newRun(){
+  P = perks();
+  run = {peak: P.startMass, splits: 0, ownCatches: 0, chargeCount: 0, soapStart: 0, grimeTouched: false, chapterGrime: false, flash2: 0, reached: 0, home: false, gift: 0, before: save.water, pollen: [], banked: 0};
+}
+function start(fromOpening){
+  newRun();
+  state = 'playing'; camera = 0; runTime = 0; chapterTime = 0; travel = 0; chapterTravel = 0; collected = 0; score = 0; chapterBonus = 0; spawnClock = 0; acc = 0;
+  trails = []; pulses = []; particles = []; rings = []; effects = {ice: 0, soap: 0, charge: 0, grime: 0}; shake = 0; flash = 0; splitCd = 0;
+  const x = fromOpening ? fromOpening.x : W*.5;
+  Object.assign(player, {x, y: H*.4, vx: 0, vy: 60*S, mass: P.startMass, vMass: P.startMass, wobble: fromOpening ? 1.4 : 0, trailClock: 0, wet: 0, dash: 0, forceStretch: 0});
+  input.active = false; input.keys.clear();
+  setEnv(0, false); chapterInit();
+  seedDrops(true);
+  showScreen('screen-playing'); try { canvas.focus({preventScroll: true}); } catch {}
+  ring(player.x, player.y, radius(player.mass)*4); spray(player.x, player.y, 16, 140); sfx.land(); shake = 3;
+  showChapterCard(0);
+  if(!save.hints.steer){ setTimeout(() => { if(state === 'playing' && runTime < 8) showHint('steer', 'Drag anywhere to steer', controlType === 'tilt' ? 'tilt is on' : 'or tilt, from settings', 5); }, 1600); }
+  updateUI();
+}
+function showChapterCard(i){
+  const e = ENVS[i]; $('cc-num').textContent = e.num; $('cc-name').textContent = e.name; $('cc-line').textContent = e.line;
+  const c = $('chapter-card'); c.classList.add('show'); clearTimeout(showChapterCard.t); showChapterCard.t = setTimeout(() => c.classList.remove('show'), 2600);
+}
+function goToMenu(){
+  state = 'menu'; camera = 0; opening = null; transition = null; dying = null; homeScene = null; ending = null; sill = null; gatherT = null; fallT = null;
+  envIndex = 0; env = ENVS[0]; TL = env.trailLife; setTheme('night'); frostC = null; beams = []; wiper = null; initStreaks(); initBokeh();
+  trails = []; patches = []; particles = []; pulses = []; rings = []; drops = []; texts = []; tipY = null; frozenSolid = false; rime = 0; flash = 0; flashQ = 0; thunderT = -1;
+  effects = {ice: 0, soap: 0, charge: 0, grime: 0};
+  player.x = W*.5; player.y = H*.4; player.forceStretch = 0; player.mass = P.startMass;
+  intro = newIntro(); fillFog(1); fog.cam = 0;
+  $('danger-overlay').style.opacity = 0; hideHint();
+  refreshMenu(); showScreen('screen-menu'); audioEnv();
+}
+function pause(v){
+  if(v && (state === 'playing')){ pausedFrom = state; state = 'paused'; input.active = false; input.keys.clear(); showScreen('screen-paused'); sfx.duck(true); }
+  else if(!v && state === 'paused'){ state = pausedFrom || 'playing'; acc = 0; showScreen('screen-playing'); sfx.duck(false); }
+}
+
+/* ---------------- Main step ---------------- */
+function spawnPatch(){
+  const type = weighted(env.patches); if(!type) return;
+  if(type === 'frostp'){ const w = rand(100, 190)*Q, h = rand(70, 140)*Q, [lo, hi] = xB(camera + H*1.5, w*.3); patches.push({type, x: rand(Math.min(lo, hi), Math.max(lo, hi)), y: camera + H*rand(1.2, 2.0), r: w*.45, stretch: h/w, rotation: 0, seed: rand(0, 100), spr: makePatch('frost', w, h), w, h}); return; }
+  let r = rand(50, 150)*S; if(type === 'rime') r = rand(34, 70)*S; if(type === 'oil') r = rand(60, 130)*S;
+  patches.push({x: rand(10, W - 10), y: camera + H*rand(1.2, 2.0), r, type, rotation: rand(0, tau), stretch: type === 'rime' ? 1 : rand(.7, 1.3), seed: rand(0, 100)});
+}
+function step(dt){
+  runTime += dt; chapterTime += dt;
+  let g = 0;
+  if(env.gust) g = updateGust(dt);
+  wind = (Math.sin(runTime*.19)*.37 + Math.sin(runTime*.61 + 2)*.23 + Math.sin(runTime*.097)*Math.min(1.15, runTime/120))*env.wind + env.windBias + g;
+  const tell = gust && gust.phase === 'warn' ? gust.dir*1.4*(gust.t/1.5) : 0;
+  windShown = lerp(windShown, wind + tell, 1 - Math.exp(-dt*3));
+  if(env.wipe) updateWiper(dt);
+  updateBolt(dt);
+  if(env.sun) updateBeamsG1(dt);
+  if(env.headlights) updateHead(dt);
+  if(splitCd > 0) splitCd -= dt;
+
+  if(camera > lastPatchCamera + H*.4){ lastPatchCamera = camera; if(Math.random() < env.patchChance) spawnPatch(); }
+  patches = patches.filter(p => p.y > camera - H*1.5);
+
+  const before = player.y;
+  if(frozenSolid){
+    player.vx = 0; player.vy = 0; player.surf = surface(player.x, player.y); player.wet = .2;
+    const sg = Math.sign(steerInput(player).steer);
+    if(sg && sg !== lastSign){ crack += .2; sfx.crack(); player.wobble = .7; shake = Math.max(shake, 2.5); shards(player.x, player.y, 3, 60); }
+    if(sg) lastSign = sg;
+    if(crack >= 1){ frozenSolid = false; rime = 0; crack = 0; player.mass *= .92; player.vy = 60*S; unlock('thaw'); sfx.crack(); shake = 6; shards(player.x, player.y, 14, 120); hideHint(); }
+  } else forces(player, dt, true);
+  const moved = Math.max(0, player.y - before)/S; travel += moved; chapterTravel += moved;
+  if(effects.soap > 0 && travel - run.soapStart > 600) unlock('slick');
+
+  const s = player.surf;
+  const area = .25 + .75*Math.pow(Math.max(1, player.mass)/65, .72);
+  let evap = (6 + Math.min(6, runTime*.02) + envIndex*.8)*area*(1 - player.wet*.8)*s.e*env.evap*P.evap;
+  if(effects.grime > 0) evap *= 2.2;
+  if(effects.ice > 0 || frozenSolid) evap = 0;
+  let gain = s.gain; if(gain < 0 && effects.ice > 0) gain = 0;
+  player.mass = Math.min(400, player.mass + (gain - evap)*dt);
+  if(gain < 0 && Math.random() < dt*12) spray(player.x, player.y + radius(player.mass)*.6, 1, 30, [96, .02, 230]);
+  run.peak = Math.max(run.peak, player.mass);
+  if(player.mass >= 300) unlock('heavy');
+  if(env.rime && !frozenSolid && chapterTime > 3){
+    const sp = Math.hypot(player.vx, player.vy)/S, fk = s.frost || 0;
+    if(fk > 0 && effects.ice < .4){ effects.ice = .4; effectMax.ice = Math.max(effectMax.ice, .4); }
+    const rate = (sp < 70 ? 1/2.6 : 0) + fk*.9;
+    rime = clamp(rime + (rate > 0 ? rate : -.8)*dt, 0, 1);
+    if(rime >= 1){ frozenSolid = true; crack = 0; lastSign = 0; sfx.freeze(); shake = 4; showHint('frozen', 'Frozen solid', 'rock \u2190 \u2192 to crack free', 4); }
+  }
+  player.wobble *= Math.exp(-dt*4.5);
+  for(const k in effects) if(effects[k] > 0){ effects[k] -= dt; if(effects[k] <= 0){ effects[k] = 0; if(k === 'soap') sfx.pop(); } }
+  camera = Math.max(camera, player.y - H*.4);
+
+  for(const t of trails) t.age += dt;
+  trails = trails.filter(t => t.age < TL && t.y > camera - H*1.2);
+  const trailEvery = env.lotus ? .08 : .045;
+  const all = [player, ...drops];
+  for(const d of all){ d.trailClock = (d.trailClock || 0) + dt; if(d.trailClock > trailEvery){ d.trailClock = 0; trails.push({id: d.id, x: d.x, y: d.y, r: radius(d.mass)*(env.lotus ? .16 : .26), age: 0}); } }
+  rebuildTrailGrid();
+
+  const pr = radius(player.mass), R = 170*S + pr*1.5;
+  for(let i = drops.length - 1; i >= 0; i--){
+    const d = drops[i]; d.pulled = false;
+    if(d.noMerge > 0) d.noMerge -= dt;
+    d.fade = Math.min(1, (d.fade ?? 1) + dt*2.5);
+    if(effects.charge > 0){
+      const dx = player.x - d.x, dy = player.y - d.y, dist = Math.hypot(dx, dy);
+      if(dist < R && dist > 1){ const pull = 420*S*(1 - dist/R); d.x += dx/dist*pull*dt; d.y += dy/dist*pull*dt; d.pulled = true; }
+    }
+    forces(d, dt, false);
+    if(d.y < camera - 90 || d.y > camera + H*2.2) drops.splice(i, 1);
+  }
+
+  for(let i = 0; i < all.length; i++){
+    let a = all[i]; if(a.dead) continue;
+    for(let j = i + 1; j < all.length; j++){
+      let b = all[j]; if(b.dead || a.dead) continue;
+      const ra = radius(a.mass), rb = radius(b.mass), dx = a.x - b.x, dy = a.y - b.y, rr = ra + rb;
+      if(dx > rr || dx < -rr || dy > rr || dy < -rr) continue;
+      if(dx*dx + dy*dy > rr*rr) continue;
+      if(a === player || b === player){
+        const o = a === player ? b : a; if(o.noMerge > 0) continue;
+        playerAbsorb(o); o.dead = true;
+      } else {
+        if(a.kind || b.kind) continue;
+        if(b.mass > a.mass){ const t = a; a = b; b = t; }
+        absorbInto(a, b); b.dead = true;
+      }
+    }
+  }
+  drops = drops.filter(d => !d.dead);
+
+  spawnClock += dt;
+  if(!sill && spawnClock > (.25 - Math.min(.15, runTime*.001)) && drops.length < Math.floor(34 + W/24)){
+    spawnClock = 0;
+    const above = Math.random() < .15, sy = above ? camera - H*rand(.2, .5) : camera + H*rand(1.2, 2.0);
+    const sx = (W > 700 && Math.random() < .25) ? clamp(player.x + rand(-300, 300), 15, W - 15) : rand(15, W - 15);
+    let mt = Math.random(), m = rand(2, 5); if(mt > .7) m = rand(6, 15); if(mt > .95) m = rand(18, 32); if(above && m < 10) m = rand(15, 30);
+    drops.push(newDrop(sx, sy, m));
+  }
+  specialClock -= dt;
+  if(!sill && specialClock <= 0 && chapterTravel/env.len < .93){
+    specialClock = rand(env.specialEvery[0], env.specialEvery[1]) * (1 - envIndex*.05);
+    const kind = weighted(env.specials);
+    drops.push(newDrop(rand(30, W - 30), camera + H*rand(1.05, 1.5), rand(7, 12), kind));
+  }
+  for(const d of drops){ if(d.kind && d.y - camera < H*.95 && d.y - camera > 0){
+    const H_ = {ice: ['Ice drop', 'no evaporation for a while, but you\u2019ll slide'], soap: ['Soap bubble', 'fast and frictionless, hard to hold'], charge: ['Static drop', 'a magnet: everything close is pulled in, grime too'], grime: ['Grime', 'dodge it: it steals water'], pollen: ['Pollen', 'carry it home and it blooms']}[d.kind];
+    showHintOnce('k_' + d.kind, H_[0], H_[1]); break; } }
+  if(!save.hints.split && runTime > 14 && envIndex === 0 && !hintTimer) { save.hints.split = 1; persist(); showHint('split', 'Tap to split', 'a burst toward your tap, paid in water', 6); }
+  if(env.frost && chapterTime > 1.5) showHintOnce('frost', 'Your warmth clears the frost', 'rime crystals steal water');
+  if(env.veins && chapterTime > 2) showHintOnce('veins', 'Ride the veins', 'they stay wet and carry you');
+  if(env.sunbeams && chapterTime > 9) showHintOnce('sun', 'Sunlight dries', 'stay in the shade when you can');
+  if(envIndex === 0 && s.type === 'dry') showHintOnce('dry', 'Dry glass drinks you', 'wet patches give water back', 3.5);
+  if(env.rime && chapterTime > 1.5) showHintOnce('frost1', 'Keep moving', 'still water freezes on this glass');
+  if(env.leaf && chapterTime > 2) showHintOnce('leaf1', 'The leaf curls at its edges', 'the midrib is a groove that carries you');
+  if(env.sun && chapterTime > 9) showHintOnce('sun1', 'Sunlight dries', 'stay in the shade when you can');
+
+  updateParticles(dt); updateRings(dt); updateFog(dt); rainImpacts(dt); pollenSpawn(); sunVapor(s, dt);
+  score = Math.floor(travel*.02 + collected*5 + chapterBonus);
+
+  if(!sill){ if(env.leaf){ if(player.y > leafSillY - H*.9) sill = {y: leafSillY}; } else if(chapterTravel >= env.len) sill = {y: player.y + H*.42}; }
+  if(sill){ drops = drops.filter(d => d.y < sill.y - radius(d.mass)*.4); if(player.y + radius(player.mass)*.85 >= sill.y){ beginGather(); return; } }
+  if(player.mass <= 1){ player.mass = 1; beginDying(); }
+}
+function updateParticles(dt){
+  for(const p of particles){ p.life += dt; p.x += p.vx*dt; p.y += p.vy*dt; if(p.kind === 'spray' || p.kind === 'shard'){ p.vy += 420*S*dt; } else if(p.kind === 'vapor'){ p.vx += Math.sin(p.life*3 + p.seed)*20*S*dt; p.vy -= 10*S*dt; } }
+  particles = particles.filter(p => p.life < p.max);
+  for(const f of pulses) f.age += dt; pulses = pulses.filter(f => f.age < .9);
+}
+
+/* ---------------- Sills: gather, drip, fall (game 1) ---------------- */
+function drawSill(){
+  if(!sill) return; const sy = sill.y - camera, kind = env.sill; if(sy > H + 40*S) return;
+  let g;
+  if(kind === 'wood'){
+    g = ctx.createLinearGradient(0, sy, 0, sy + 70*Q); g.addColorStop(0, 'oklch(0.86 0.025 80)'); g.addColorStop(.15, 'oklch(0.78 0.03 75)'); g.addColorStop(1, 'oklch(0.52 0.03 60)');
+    ctx.fillStyle = g; ctx.fillRect(0, sy, W, H); ctx.fillStyle = 'rgba(255,250,240,.6)'; ctx.fillRect(0, sy, W, 1.5*S);
+  } else if(kind === 'cowl'){
+    ctx.fillStyle = 'oklch(0.12 0.01 260)'; ctx.fillRect(0, sy, W, H);
+    ctx.strokeStyle = 'oklch(0.22 0.01 260)'; ctx.lineWidth = 7*Q; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(30*Q, sy + 16*Q); ctx.lineTo(W*.62, sy + 12*Q); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0, sy, W, 1*S);
+  } else if(kind === 'bar'){
+    g = ctx.createLinearGradient(0, sy, 0, sy + 40*Q); g.addColorStop(0, 'oklch(0.9 0.01 235)'); g.addColorStop(.4, 'oklch(0.7 0.012 235)'); g.addColorStop(1, 'oklch(0.55 0.015 240)');
+    ctx.fillStyle = g; ctx.fillRect(0, sy, W, 40*Q); ctx.fillStyle = 'oklch(0.34 0.03 150)'; ctx.fillRect(0, sy + 40*Q, W, H);
+  }
+  if(gatherT) for(const j of gatherT.js){ if(j.done || gatherT.t < j.delay) continue; const jr = radius(j.m);
+    drawDrop({x: j.x, y: sill.y - jr*.85, vx: Math.sign(player.x - j.x)*60*S, vy: 0, mass: j.m, vMass: j.m, phase: j.seed, id: j.id, fade: 1}, false, null); }
+}
+function beginGather(){
+  state = 'transition';
+  const n = 4 + (stageIndex(save.water) >= 5 ? 2 : 0), js = [], [lo, hi] = xB(sill.y - 10*S, 4*S);
+  for(let k = 0; k < n; k++){ const side = k % 2 ? 1 : -1; js.push({side, x: side < 0 ? lo - 12*S : hi + 12*S, m: rand(6, 13), v: rand(130, 190)*Q, delay: .25 + k*.38, done: false, seed: rand(0, 9), id: 900 + k}); }
+  gatherT = {t: 0, js, joined: 0, phase: 'pool', pt: 0};
+  player.vy = 0; player.wobble = Math.max(player.wobble || 0, .5); sfx.absorb(.1, 0);
+  effects.soap = 0; effects.ice = 0; effects.charge = 0; hideHint();
+  if(!run.chapterGrime) unlock('clean');
+  if(player.mass < 25) unlock('feather');
+  chapterBonus += 100*(envIndex + 1); run.reached = envIndex + 1;
+}
+function updateTransition(dt){
+  if(fallT){ fallT.t += dt; updateParticles(dt); updateRings(dt); if(fallT.t >= fallT.dur) landNext(); return; }
+  const G = gatherT; if(!G) return; G.t += dt;
+  for(const t of trails) t.age += dt; trails = trails.filter(t => t.age < TL && t.y > camera - H*1.2);
+  updateParticles(dt); updateRings(dt); updateBolt(dt); if(env.wipe) updateWiper(dt); if(env.headlights) updateHead(dt); if(env.sun) updateBeamsG1(dt);
+  updateFog(dt); rainImpacts(dt);
+  const r = radius(player.mass);
+  for(let i = drops.length - 1; i >= 0; i--){
+    const d = drops[i]; forces(d, dt, false);
+    if(Math.hypot(d.x - player.x, d.y - player.y) < r + radius(d.mass)){ if(d.kind !== 'grime') absorbInto(player, d); sfx.absorb(d.mass/65, (d.x/W)*2 - 1); drops.splice(i, 1); continue; }
+    if(d.y > sill.y - radius(d.mass)*.5 || d.y < camera - 90){ spray(d.x, sill.y - 2*S, 2, 50); drops.splice(i, 1); }
+  }
+  const steer = steerInput(player).steer;
+  player.vx = lerp(player.vx, steer*30*Q, 1 - Math.exp(-dt*3));
+  const [lo, hi] = xB(sill.y - r, r); player.x = hi > lo ? clamp(player.x + player.vx*dt, lo, hi) : W/2;
+  player.y = lerp(player.y, sill.y - r*.85, 1 - Math.exp(-dt*10)); player.vy = 0;
+  player.wobble = (player.wobble || 0)*Math.exp(-dt*3);
+  if(G.phase === 'pool'){
+    for(const j of G.js){
+      if(j.done || G.t < j.delay) continue;
+      j.x += Math.sign(player.x - j.x)*j.v*dt;
+      if(Math.abs(j.x - player.x) < r + radius(j.m)){ j.done = true; G.joined++; player.mass += j.m; player.wobble = Math.min(1.4, player.wobble + .5); collected++;
+        plip(440*Math.pow(1.122, G.joined*2), .16, j.side*.5, .25); }
+    }
+    if(G.js.every(j => j.done) && G.t > 1){
+      G.phase = 'rest'; G.pt = 0;
+      if(envIndex < ENVS.length - 1){ const leave = Math.round(player.mass*.15); player.mass -= leave; run.banked += leave; save.water += leave; persist(); toast(`+${leave} water \u00b7 the sill keeps a little`); }
+      if(player.mass < 30) unlock('thread');
+    }
+  } else if(G.phase === 'rest'){ G.pt += dt; if(G.pt > .7){ G.phase = 'drip'; G.pt = 0; } }
+  else if(G.phase === 'drip'){
+    G.pt += dt; const k = clamp(G.pt/.9, 0, 1); player.forceStretch = 1.02 + k*.55;
+    if(G.pt > .9){ player.forceStretch = 0; sfx.drip(); if(envIndex >= ENVS.length - 1) beginEnding(); else beginFall(); return; }
+  }
+  run.peak = Math.max(run.peak, player.mass);
+  camera = Math.max(camera, lerp(camera, sill.y - H*.64, 1 - Math.exp(-dt*3)));
+}
+function beginFall(){
+  const to = envIndex + 1;
+  fallT = {t: 0, dur: 1.8, from: envIndex, to, x: player.x, sy: player.y - camera};
+  if(!G1KEYS.has(ENVS[to].key)) paintScene(ENVS[to].key, nextScene);
+  sfx.whoosh();
+}
+function landNext(){
+  const f = fallT;
+  const tmp = scene; scene = nextScene; nextScene = tmp;
+  setEnv(f.to, false);
+  drops = []; trails = []; particles = []; pulses = []; rings = [];
+  player.x = clamp(f.x, 40*Q, W - 40*Q); player.y = camera + H*.4; player.vy = 80*S; player.vx = 0; player.wobble = 1.3; player.forceStretch = 0;
+  chapterTravel = 0; chapterTime = 0; run.chapterGrime = false; acc = 0;
+  chapterInit();
+  seedDrops(true);
+  ring(player.x, player.y, radius(player.mass)*4); spray(player.x, player.y, 14, 130); sfx.land(); shake = 5;
+  state = 'playing'; showChapterCard(envIndex);
+}
+function renderFallG1(){
+  const f = fallT, u = clamp(f.t/f.dur, 0, 1), fromK = ENVS[f.from].key, toK = ENVS[f.to].key;
+  if(G1KEYS.has(fromK)) g1Paint(fromK, scene, camera);
+  if(G1KEYS.has(toK)){ const keep = tipY; tipY = null; g1Paint(toK, nextScene, 0); tipY = keep; }
+  ctx.drawImage(scene, 0, 0, W, H); ctx.globalAlpha = smooth(u); ctx.drawImage(nextScene, 0, 0, W, H); ctx.globalAlpha = 1;
+  ctx.fillStyle = `rgba(6,10,20,${Math.sin(u*Math.PI)*.5})`; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(225,232,255,.22)'; ctx.lineWidth = 1*S;
+  for(let i = 0; i < 30*Math.max(1, W/(480*Q)); i++){ const x = hash(i)*W, sp = (900 + hash(i + 3)*900)*Q, len = (30 + hash(i + 5)*70)*Q;
+    const y = ((hash(i + 7)*H - f.t*sp) % (H + 100) + H + 100) % (H + 100) - 50; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + len*Math.sin(u*Math.PI)); ctx.stroke(); }
+  const y = lerp(f.sy, H*.4, easeOut4(u)), x = f.x + Math.sin(u*5)*4*Q;
+  drawDrop({x, y: y + camera, vx: 0, vy: 300*S, mass: player.mass, vMass: player.mass, phase: 1, id: 1, fade: 1, forceStretch: 1.1 + Math.sin(u*Math.PI)*.35}, true);
+  if(run.pollen.length) drawPollenDots(x, y, radius(player.mass));
+  drawParticles(); drawRail();
+}
+
+/* ---------------- Ending: into the soil (game 1) ---------------- */
+function beginEnding(){ state = 'ending'; ending = {t: 0, x: player.x, splashed: false, done: false}; showScreen('screen-none'); hideHint(); $('danger-overlay').style.opacity = 0; }
+function updateEnding(dt){
+  const e = ending; e.t += dt; updateParticles(dt);
+  if(e.t > .75 && !e.splashed){ e.splashed = true; sfx.land(); shake = 5; }
+  if(e.t > 2.4 && !e.done){ e.done = true; finishHome(); }
+}
+function finishHome(){
+  run.home = true; const from = save.water, delivered = player.mass;
+  run.gift = Math.round(delivered*.6 + 30); save.water += run.gift;
+  score = Math.floor(travel*.02 + collected*5 + chapterBonus) + Math.round(delivered);
+  (run.pollen || []).forEach(ci => save.flowers.push(ci)); save.flowers = save.flowers.slice(-40);
+  save.homes = (save.homes || 0) + 1;
+  unlock('home'); if(run.splits === 0) unlock('unbroken'); if(new Set(run.pollen).size >= 4) unlock('pollinator'); if(delivered >= 250) unlock('deluge');
+  save.best = Math.max(save.best, score); save.runs++; persist(); P = perks();
+  state = 'ended'; openPlant('ending', from); sfx.grow();
+}
+function renderEnding(){
+  const t = ending ? ending.t : 9, r = radius(Math.max(player.mass, 4));
+  let g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'oklch(0.36 0.04 65)'); g.addColorStop(1, 'oklch(0.22 0.03 55)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const n = Math.round(260*W*H/(480*700*Q*Q));
+  for(let i = 0; i < n; i++){ ctx.fillStyle = `rgba(${hash(i) > .7 ? '200,180,140' : '20,14,8'},${.15 + hash(i + 1)*.35})`; ctx.fillRect(hash(i + 2)*W, hash(i + 3)*H, (1 + hash(i + 4)*2.5)*Q, (1 + hash(i + 5)*2)*Q); }
+  ctx.strokeStyle = 'rgba(235,220,190,.22)'; ctx.lineWidth = 1.2*S;
+  for(let i = 0; i < 7; i++){ ctx.beginPath(); ctx.moveTo(W*.5 + (hash(i) - .5)*60*Q, H*.58); ctx.bezierCurveTo(W*hash(i + 1), H*.7, W*hash(i + 2), H*.85, W*hash(i + 3), H + 20); ctx.stroke(); }
+  const land = H*.56, tFall = .75, sx = shake > .05 ? (Math.random() - .5)*shake*S : 0;
+  ctx.save(); ctx.translate(sx, 0);
+  const x = ending ? lerp(ending.x, W*.5, clamp(t/tFall, 0, 1)) : W*.5;
+  if(t < tFall){ const u = t/tFall, y = lerp(-30*S, land, u*u);
+    drawDrop({x, y: y + camera, vx: 0, vy: 500*S, mass: player.mass, vMass: player.mass, phase: 1, id: 1, fade: 1, forceStretch: 1.3}, true);
+    if(run.pollen.length) drawPollenDots(x, y, r); }
+  else {
+    const u = clamp((t - tFall)/1.6, 0, 1), sr = 12*S + easeOut4(u)*r*5;
+    ctx.fillStyle = `rgba(20,12,6,${.55*(1 - u*.3)})`; ctx.beginPath(); ctx.ellipse(W*.5, land, sr, sr*.45, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = `rgba(210,225,255,${(1 - u)*.5})`; ctx.lineWidth = 1.2*S; ctx.beginPath(); ctx.ellipse(W*.5, land, easeOut4(u)*90*Q, easeOut4(u)*36*Q, 0, 0, TAU); ctx.stroke();
+    const m = player.mass*Math.pow(1 - u, 2); if(m > .5) drawDrop({x: W*.5, y: land - radius(m)*.5 + camera, vx: 0, vy: 0, mass: m, vMass: m, phase: 1, id: 1, fade: 1, forceStretch: .9}, true);
+    if(run.pollen.length) run.pollen.forEach((ci, i) => { ctx.globalAlpha = 1 - u*.5; ctx.fillStyle = POLLEN_COLORS[ci]; ctx.beginPath(); ctx.arc(W*.5 + (i - (run.pollen.length - 1)/2)*10*S, land - 2*S, 2.4*S, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; });
+  }
+  ctx.restore();
+  ctx.fillStyle = `oklch(0.955 0.014 145 / ${clamp((t - 1.6)/.8, 0, 1)})`; ctx.fillRect(0, 0, W, H);
+}
+
+/* ---------------- Intro: pull the leaf (game 1) ---------------- */
+const LEAF_BASE = [230, -250];
+function newIntro(){ return {pull: 0, pullV: 0, target: 0, detached: false, fallT: 0, pullAt: 0, ptr: null, quick: false}; }
+function leafTip(tx, ty, Z, th){
+  const bx = tx + LEAF_BASE[0]*Z, by = ty + LEAF_BASE[1]*Z, vx = -LEAF_BASE[0]*Z, vy = -LEAF_BASE[1]*Z;
+  const c = Math.cos(th), s = Math.sin(th); return [bx + vx*c - vy*s, by + vx*s + vy*c];
+}
+function drawLeafShape(x, stage, sway){
+  const hue = 142 + stage*2, L = .36 + stage*.015;
+  const g = x.createLinearGradient(0, 0, 300, -320);
+  g.addColorStop(0, `oklch(${L + .08} 0.11 ${hue})`); g.addColorStop(.6, `oklch(${L} 0.1 ${hue + 4})`); g.addColorStop(1, `oklch(${L - .08} 0.08 ${hue + 6})`);
+  x.fillStyle = g; x.beginPath(); x.moveTo(0, 0);
+  x.bezierCurveTo(30, -110 + sway, 170, -240, 340, -330); x.bezierCurveTo(300, -190, 180, -40 - sway, 0, 0); x.fill();
+  x.strokeStyle = `oklch(${L + .2} 0.09 ${hue - 10} / .7)`; x.lineWidth = 2.4; x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(150, -150, 340, -330); x.stroke();
+  x.lineWidth = 1; x.strokeStyle = `oklch(${L + .14} 0.08 ${hue - 6} / .45)`;
+  for(let i = 1; i < 7; i++){ const t = i/7, px = t*340*(1 - .1*(1 - t)), py = -t*330*(1 + .05*(1 - t));
+    x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px - 10, py - 40, px - 36 + t*10, py - 62 + t*20); x.stroke();
+    x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + 30, py + 8, px + 58 - t*14, py + 30 - t*6); x.stroke(); }
+  x.strokeStyle = 'rgba(230,240,255,.35)'; x.lineWidth = 1.2; x.beginPath(); x.moveTo(0, 0); x.bezierCurveTo(30, -110 + sway, 170, -240, 340, -330); x.stroke();
+  for(let i = 0; i < 9; i++){ const t = .15 + hash(i)*.7, px = t*300 + (hash(i + 4) - .3)*60, py = -t*290 + (hash(i + 9) - .5)*40, r = 1.5 + hash(i + 2)*3.5;
+    x.fillStyle = 'rgba(210,235,220,.3)'; x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill(); x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(px - r*.4, py - r*.5, 1, 1); }
+}
+function updateIntro(dt){
+  const I = intro; if(!I) return;
+  if(!I.detached){ I.pullV += (I.target - I.pull)*14*dt - I.pullV*5.5*dt; I.pull += I.pullV*dt; if(I.pull > .96) detach(); }
+  else { I.fallT += dt; if(I.fallT >= (I.quick ? .85 : 1.35)) finishIntro(); }
+  updateParticles(dt);
+}
+function detach(){
+  const I = intro; if(!I || I.detached) return;
+  I.detached = true; I.pullAt = I.pull; I.fallT = 0; I.quick = !!save.seenOpening;
+  ensureAudio(); plip(600, .2, 0, .15);
+  state = 'opening'; showScreen('screen-none'); $('record-badge').classList.add('hidden'); $('settings-container').classList.remove('open');
+  unlock('first');
+}
+function finishIntro(){ if(!save.seenOpening){ save.seenOpening = true; persist(); } intro = null; start({x: W*.5}); }
+function drawVignette(extra){
+  const g = ctx.createRadialGradient(W/2, H*.45, H*.25, W/2, H*.5, H*.85);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(5,8,18,${.45 + extra})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function renderIntro(){
+  const I = intro || newIntro(), u = I.detached ? clamp(I.fallT/(I.quick ? .85 : 1.35), 0, 1) : 0;
+  g1Paint('window', scene, 0); ctx.drawImage(scene, 0, 0, W, H); buildSceneLo();
+  if(currentScreen === 'screen-info'){ ctx.fillStyle = 'rgba(10,14,28,.62)'; ctx.fillRect(0, 0, W, H); return; }
+  if(u > 0) composeFog(ENVS[0].fog, ENVS[0].fog.alpha*easeOut4(u));
+  const Z = Q*lerp(2.1, 1, easeOut4(u)), tx = W*.5 - 48*Q, ty0 = H*.44;
+  const th = -I.pull*.3*(1 - u), ty = ty0 - Math.pow(u, 1.4)*H*1.2;
+  ctx.save(); ctx.translate(tx, ty); ctx.scale(Z, Z); ctx.translate(LEAF_BASE[0], LEAF_BASE[1]); ctx.rotate(th); ctx.translate(-LEAF_BASE[0], -LEAF_BASE[1]);
+  drawLeafShape(ctx, stageIndex(save.water), Math.sin(sceneT*.8)*3);
+  save.flowers.slice(-6).forEach((ci, i) => { ctx.globalAlpha = .5; ctx.drawImage(bokehSprite(POLLEN_COLORS[ci]), 250 + i*26, -380 - (i % 2)*30, 40, 40); });
+  ctx.globalAlpha = 1; ctx.restore();
+  const [tipX, tipY2] = leafTip(tx, ty, Z, th), rad = radius(P.startMass), rLeaf = rad*1.15*(1 + I.pull*.06);
+  let dx = tipX, dy, r = rLeaf;
+  if(!I.detached) dy = tipY2 + r*(.8 + I.pull*.5);
+  else { const [sx, sy] = leafTip(tx, ty0, 2.1*Q, -(I.pullAt || 0)*.3); const st = sy + rLeaf*1.3; r = lerp(rLeaf, rad, easeOut4(u)); dx = lerp(sx, W*.5, easeOut4(u)); dy = lerp(st, H*.4, easeOut4(u)); }
+  if(!I.detached && I.pull > .15){
+    ctx.fillStyle = 'rgba(200,215,240,.35)'; ctx.beginPath(); ctx.moveTo(tipX - r*.25, tipY2); ctx.quadraticCurveTo(dx - r*.1, (tipY2 + dy)/2, dx - r*.5, dy - r*.6);
+    ctx.lineTo(dx + r*.5, dy - r*.6); ctx.quadraticCurveTo(dx + r*.1, (tipY2 + dy)/2, tipX + r*.25, tipY2); ctx.fill();
+  }
+  const m = Math.pow(r/(3.5*S), 2);
+  drawDrop({x: dx, y: dy + camera, vx: 0, vy: 0, mass: m, vMass: m, phase: 1, id: 1, fade: 1, wobble: 0, forceStretch: I.detached ? 1 + .45*(1 - u) : 1.06 + I.pull*.4}, true);
+  drawVignette(.15*(1 - u));
+}
+
+/* ---------------- The plant panel (game 1) ---------------- */
+const pc = $('plantCanvas'), pctx = pc.getContext('2d');
+let plantAnim = null;
+const growthOf = w => clamp(growth(w)/5, 0, 1);
+function drawPlant(g, t, ripple){
+  const x = pctx, Wp = 800, Hp = 1000; x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, Wp, Hp);
+  const lg = x.createLinearGradient(0, 0, Wp, Hp); lg.addColorStop(0, 'rgba(255,252,235,.9)'); lg.addColorStop(1, 'rgba(255,252,235,0)');
+  x.fillStyle = lg; x.beginPath(); x.moveTo(90, 0); x.lineTo(560, 0); x.lineTo(760, 1000); x.lineTo(160, 1000); x.fill();
+  x.fillStyle = 'oklch(0.88 0.02 120)'; x.fillRect(0, 960, Wp, 40);
+  const baseX = 400, baseY = 800, Hs = 70 + g*600, sway = Math.sin(t*.9)*8*(.3 + g);
+  const stem = s => { const cx = baseX - 20*g, cy = baseY - Hs*.5, ex = baseX + 36*g + sway, ey = baseY - Hs; const a = 1 - s;
+    return [a*a*baseX + 2*a*s*cx + s*s*ex, a*a*baseY + 2*a*s*cy + s*s*ey]; };
+  x.strokeStyle = 'oklch(0.48 0.09 140)'; x.lineCap = 'round'; x.lineWidth = 5 + g*9; x.beginPath();
+  for(let s = 0; s <= 1.001; s += .05){ const [px, py] = stem(s); s ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke();
+  const n = 2 + Math.round(g*11); let lowTip = null;
+  for(let i = 0; i < n; i++){
+    const s = .12 + (i/Math.max(1, n - 1))*.84, [px, py] = stem(Math.min(s, .98)), side = i % 2 ? 1 : -1;
+    const grow = clamp(g*13 - i, 0, 1), L = (60 + g*150)*(1 - s*.45)*(.35 + .65*grow);
+    const ang = side*(1.05 - s*.5) + Math.sin(t*1.1 + i)*.04;
+    x.save(); x.translate(px, py); x.rotate(ang); x.scale(side, 1);
+    const lg2 = x.createLinearGradient(0, 0, L, 0); lg2.addColorStop(0, 'oklch(0.5 0.11 142)'); lg2.addColorStop(1, 'oklch(0.62 0.13 132)');
+    x.fillStyle = lg2; x.beginPath(); x.moveTo(0, 0); x.bezierCurveTo(L*.3, -L*.38, L*.75, -L*.3, L, L*.05); x.bezierCurveTo(L*.7, L*.22, L*.3, L*.2, 0, 0); x.fill();
+    x.strokeStyle = 'oklch(0.72 0.1 130 / .7)'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(L*.5, -L*.05, L, L*.05); x.stroke();
+    x.restore();
+    if(i === 0){ const sn = Math.sin(ang); lowTip = [px + side*L*Math.cos(ang), py + L*sn*side + L*.05]; }
+  }
+  const fl = save.flowers.slice(-14);
+  fl.forEach((ci, i) => {
+    const s = 1 - (i/Math.max(1, fl.length))*.5, [px, py] = stem(Math.min(1, s)); const off = i === 0 ? 0 : (i % 2 ? 1 : -1)*(26 + (i*13) % 30);
+    const bloom = plantAnim && plantAnim.newFrom != null && i >= plantAnim.newFrom ? easeOut4(clamp((t - 1.2 - (i - plantAnim.newFrom)*.35)/1.4, 0, 1)) : 1;
+    if(bloom <= 0) return;
+    const fx = px + off, fy = py - 10 - (i % 3)*6, pr = (10 + g*8)*bloom;
+    if(i){ x.strokeStyle = 'oklch(0.5 0.09 140)'; x.lineWidth = 2; x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + off*.5, py - 18, fx, fy); x.stroke(); }
+    x.fillStyle = POLLEN_COLORS[ci];
+    for(let k = 0; k < 5; k++){ const a = k/5*TAU + t*.1 + i; x.beginPath(); x.ellipse(fx + Math.cos(a)*pr*.7, fy + Math.sin(a)*pr*.7, pr*.62, pr*.38, a, 0, TAU); x.fill(); }
+    x.fillStyle = 'oklch(0.78 0.14 80)'; x.beginPath(); x.arc(fx, fy, pr*.32, 0, TAU); x.fill();
+  });
+  if(g < .06){ x.fillStyle = 'oklch(0.55 0.11 138)'; [-1, 1].forEach(sd => { x.beginPath(); x.ellipse(baseX + sd*16 + sway*.5, baseY - Hs - 4, 16, 8, sd*-.5, 0, TAU); x.fill(); }); }
+  if(lowTip){ const [lx, ly] = lowTip, dr = 7 + Math.sin(t*2)*.6; x.fillStyle = 'rgba(120,160,210,.35)'; x.beginPath(); x.arc(lx, ly + dr, dr, 0, TAU); x.fill();
+    x.strokeStyle = 'rgba(60,90,130,.45)'; x.lineWidth = 1.5; x.stroke(); x.fillStyle = 'rgba(255,255,255,.95)'; x.beginPath(); x.arc(lx - dr*.35, ly + dr*.6, dr*.25, 0, TAU); x.fill(); }
+  const pg = x.createLinearGradient(260, 0, 540, 0); pg.addColorStop(0, 'oklch(0.55 0.1 42)'); pg.addColorStop(.45, 'oklch(0.66 0.11 45)'); pg.addColorStop(1, 'oklch(0.5 0.09 40)');
+  x.fillStyle = 'oklch(0.3 0.04 55)'; x.beginPath(); x.ellipse(400, 808, 148, 24, 0, 0, TAU); x.fill();
+  if(ripple && ripple < 1){ x.strokeStyle = `rgba(150,190,240,${(1 - ripple)*.8})`; x.lineWidth = 3; x.beginPath(); x.ellipse(400, 808, 20 + ripple*120, 4 + ripple*18, 0, 0, TAU); x.stroke();
+    x.fillStyle = `rgba(20,14,10,${(1 - ripple)*.5})`; x.beginPath(); x.ellipse(400, 808, 30 + ripple*90, 6 + ripple*14, 0, 0, TAU); x.fill(); }
+  x.fillStyle = pg; x.beginPath(); x.moveTo(242, 812); x.lineTo(558, 812); x.lineTo(528, 960); x.lineTo(272, 960); x.closePath(); x.fill();
+  x.fillStyle = 'oklch(0.62 0.1 45)'; x.fillRect(236, 790, 328, 34);
+  x.fillStyle = 'rgba(255,240,220,.25)'; x.fillRect(236, 790, 328, 5);
+}
+function plantLoop(now){
+  if(!plantAnim) return;
+  const dt = Math.min(.05, (now - (plantAnim.last || now))/1000); plantAnim.last = now; plantAnim.t += dt;
+  const k = easeOut4(clamp((plantAnim.t - .4)/2.6, 0, 1));
+  drawPlant(lerp(plantAnim.from, plantAnim.to, k), plantAnim.t, plantAnim.ripple ? clamp(plantAnim.t/1.6, 0, 1) : 0);
+  $('plantMl').textContent = Math.round(lerp(plantAnim.fromW, save.water, k)).toLocaleString();
+  requestAnimationFrame(plantLoop);
+}
+function openPlant(kind, from){
+  from = from ?? save.water;
+  const panel = $('plant'); panel.classList.add('on'); panel.inert = false;
+  showScreen('screen-none'); $('record-badge').classList.add('hidden');
+  const st = STAGES[stageIndex(save.water)];
+  if(kind === 'ending'){
+    $('plantEyebrow').textContent = `Journey complete \u00b7 ${score.toLocaleString()}`;
+    $('plantTitle').textContent = 'Returned to the soil.';
+    const pol = run.pollen.length;
+    $('plantLede').textContent = `${run.gift} water soaked into the roots${pol ? `, and ${pol === 1 ? 'the pollen' : pol + ' grains of pollen'} took root` : ''}. Your plant is now: ${st.name.toLowerCase()}.`;
+    $('btnAgain').textContent = 'Fall again';
+  } else {
+    const h = save.homes || 0;
+    $('plantEyebrow').textContent = `Your plant \u00b7 ${h} ${h === 1 ? 'journey' : 'journeys'} home`;
+    $('plantTitle').textContent = st.name;
+    $('plantLede').textContent = 'Every drop that reaches the soil stays here. It grows, and it gives back.';
+    $('btnAgain').textContent = 'Fall';
+  }
+  $('ladder').innerHTML = STAGES.slice(1).map(s => `<li class="${save.water >= s.at ? 'got' : ''}"><i class="ldot"></i><div><b>${s.perk}</b><span>${s.desc}</span><small>${s.name} \u00b7 ${s.at.toLocaleString()} water</small></div></li>`).join('');
+  $('moments').innerHTML = MOMENTS.map(m => `<div class="${save.moments[m[0]] ? 'got' : ''}"><b>${m[1]}</b>${m[2]}</div>`).join('');
+  const was = !!plantAnim, nf = kind === 'ending' && run.pollen.length ? Math.max(0, Math.min(save.flowers.length, 14) - run.pollen.length) : null;
+  plantAnim = {from: growthOf(from), to: growthOf(save.water), fromW: from, t: 0, ripple: kind === 'ending', newFrom: nf};
+  if(!was) requestAnimationFrame(plantLoop);
+  setTimeout(() => $('btnAgain').focus({preventScroll: true}), 50);
+}
+function closePlant(){ const p = $('plant'); p.classList.remove('on'); p.inert = true; plantAnim = null; }
+function plantOpen(){ return $('plant').classList.contains('on'); }
+
+/* ---------------- Dying ---------------- */
+function beginDying(){
+  state = 'dying'; frozenSolid = false; rime = 0; dying = {t: 0, x: player.x, y: player.y}; sfx.sigh(); effects = {ice: 0, soap: 0, charge: 0, grime: 0}; wiper = null;
+}
+function updateDying(dt){
+  dying.t += dt; updateParticles(dt);
+  player.mass = Math.max(.02, player.mass*(1 - dt*2)); player.vx *= .9; player.vy *= .9;
+  if(dying.t < 1.1 && Math.random() < dt*40) particles.push({x: dying.x + rand(-8, 8)*S, y: dying.y + rand(-6, 6)*S, vx: rand(-8, 8)*S, vy: rand(-45, -20)*S, life: 0, max: rand(1.2, 2), r: rand(3, 8)*S, kind: 'vapor', seed: rand(0, 9)});
+  if(dying.t > 1.9) end(false);
+}
+
+/* ---------------- End ---------------- */
+function end(home){
+  state = 'ended';
+  if(!home){ run.gift = Math.round(run.peak*.2 + (run.reached || 0)*8); run.before = save.water; save.water += run.gift; }
+  else { score += Math.round(player.mass || 0); }
+  const beforeStage = stageIndex(run.before), afterStage = stageIndex(save.water);
+  save.best = Math.max(save.best, score); save.runs++; persist(); P = perks();
+  $('record-display').textContent = save.best.toLocaleString();
+  $('ended-title').textContent = home ? 'HOME' : 'EVAPORATED';
+  $('final-score-display').textContent = score.toLocaleString();
+  const reached = home ? 'all four glasses' : (ENVS[envIndex].name.toLowerCase());
+  $('ended-stats').textContent = `${Math.round(travel/10).toLocaleString()} fallen \u00b7 ${home ? reached : 'lost on the ' + reached} \u00b7 peak ${Math.round(run.peak)}`;
+  $('gift-line').textContent = home ? `+${run.gift} water soaked into the plant` : `+${run.gift} water rose to the clouds, and came back as rain${run.banked ? ` \u00b7 +${run.banked} left on the sills` : ''}`;
+  const st = STAGES[afterStage], nx = STAGES[afterStage + 1];
+  const setThread = w => { const s = stageIndex(w), a = STAGES[s].at, b = STAGES[s + 1] ? STAGES[s + 1].at : a + 1; $('gift-thread').style.width = (STAGES[s + 1] ? clamp((w - a)/(b - a), 0, 1)*100 : 100) + '%'; };
+  $('gift-thread').style.transition = 'none'; setThread(afterStage > beforeStage ? STAGES[afterStage].at : run.before); void $('gift-thread').offsetWidth; $('gift-thread').style.transition = ''; setTimeout(() => setThread(save.water), 350);
+  $('gift-stage').textContent = nx ? `${st.name} \u00b7 ${save.water.toLocaleString()} / ${nx.at.toLocaleString()}` : `${st.name} \u00b7 ${save.water.toLocaleString()} given`;
+  $('gift-perk').textContent = afterStage > beforeStage ? `The plant grew: ${st.perk}. ${st.desc}` : '';
+  $('danger-overlay').style.opacity = 0; hideHint();
+  showScreen('screen-ended');
+}
+function refreshMenu(){
+  const w = save.water, i = stageIndex(w), st = STAGES[i], nx = STAGES[i + 1];
+  $('plant-stage').textContent = st.name;
+  $('plant-thread').style.width = (nx ? clamp((w - st.at)/(nx.at - st.at), 0, 1)*100 : 100) + '%';
+  $('plant-water').textContent = w ? `${w.toLocaleString()} water given${nx ? ` \u00b7 next at ${nx.at.toLocaleString()}` : ''}` : 'bring water home to help it grow';
+  $('menu-hint').textContent = save.seenOpening ? 'tap to let go' : 'pull the leaf down';
+  $('record-display').textContent = save.best.toLocaleString();
+  $('record-badge').style.visibility = save.best ? '' : 'hidden';
+  $('moment-list').innerHTML = MOMENTS.map(m => `<div class="moment ${save.moments[m[0]] ? 'got' : 'locked'}"><b>${m[1]}</b><span>${m[2]}</span></div>`).join('');
+  $('perk-list').innerHTML = STAGES.slice(1).map(s => `<div class="row"><div class="dot ${w >= s.at ? 'charge' : 'plain'}" style="${w >= s.at ? 'background:var(--accent)' : ''}"></div><div><b>${s.perk} <span style="font-weight:500">\u00b7 ${s.at}</span></b><span>${s.desc}</span></div></div>`).join('');
+}
+
+/* ---------------- Ambient layers ---------------- */
+let frameDt = 0;
+function initStreaks(){
+  const n = Math.round((env.rain || 0)*clamp(W*H/(500*820), .6, 2));
+  streaks = Array.from({length: n}, () => ({x: rand(-W*.2, W*1.2), y: rand(0, H), len: rand(10, 26)*S, spd: rand(500, 900)*S, a: rand(.08, .2)}));
+  wisps = env.frost ? Array.from({length: 16}, () => ({x: rand(0, W), y: rand(0, H), len: rand(80, 220)*S, spd: rand(300, 700)*S, a: rand(.1, .25), th: rand(1, 3)*S})) : [];
+}
+function initBokeh(){ bokeh = env.key === 'windshield' ? Array.from({length: 18}, () => ({x: rand(0, W), y: rand(H*.1, H*.95), r: rand(10, 34)*S, hue: [70, 50, 25, 200, 90][Math.floor(rand(0, 5))], v: rand(4, 18)*S, a: rand(.08, .22), ph: rand(0, tau)})) : []; }
+function drawAmbientBack(dt){
+  if(env.key === 'windshield'){
+    trafficT += dt; const ph = Math.floor(trafficT/9) % 3, hue = [25, 150, 80][ph], k = clamp((trafficT % 9)/1.2, 0, 1);
+    let g = ctx.createRadialGradient(W*.8, H*.12, 0, W*.8, H*.12, W*.7); g.addColorStop(0, color(70, .16, hue, .22*k)); g.addColorStop(1, color(60, .1, hue, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    for(const b of bokeh){ b.x -= b.v*dt; b.y += Math.sin(clock*.3 + b.ph)*2*S*dt; if(b.x < -b.r*2){ b.x = W + b.r*2; b.y = rand(H*.1, H*.95); }
+      g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r); g.addColorStop(0, color(88, .12, b.hue, b.a)); g.addColorStop(.7, color(80, .12, b.hue, b.a*.6)); g.addColorStop(1, color(80, .12, b.hue, 0)); ctx.fillStyle = g; ctx.fillRect(b.x - b.r, b.y - b.r, b.r*2, b.r*2); }
+    headClock -= dt;
+    if(!headlight && headClock <= 0){ headlight = {x: Math.random() < .5 ? -W*.3 : W*1.3, y: rand(H*.55, H*.9), v: 0, r: rand(120, 200)*S}; headlight.v = (headlight.x < 0 ? 1 : -1)*rand(260, 420)*S; }
+    if(headlight){ headlight.x += headlight.v*dt; g = ctx.createRadialGradient(headlight.x, headlight.y, 0, headlight.x, headlight.y, headlight.r); g.addColorStop(0, color(97, .03, 90, .35)); g.addColorStop(1, color(95, .03, 90, 0)); ctx.fillStyle = g; ctx.fillRect(headlight.x - headlight.r, headlight.y - headlight.r, headlight.r*2, headlight.r*2);
+      if(headlight.x < -W*.4 || headlight.x > W*1.4){ headlight = null; headClock = rand(5, 10); } }
+  }
+  if(env.figure && (state === 'playing' || state === 'menu' || state === 'opening')){
+    figureClock -= dt;
+    if(!figure && figureClock <= 0) figure = {x: -80*S, v: rand(22, 34)*S, y: H*rand(.55, .75)};
+    if(figure){ figure.x += figure.v*dt; const fx = figure.x, fy = figure.y, bob = Math.sin(clock*5)*2*S;
+      ctx.save(); ctx.globalAlpha = .13; ctx.fillStyle = color(30, .02, 150);
+      ctx.beginPath(); ctx.ellipse(fx, fy - 70*S + bob, 46*S, 20*S, 0, Math.PI, tau); ctx.fill();
+      ctx.fillRect(fx - 1.5*S, fy - 70*S + bob, 3*S, 40*S);
+      ctx.beginPath(); ctx.ellipse(fx, fy + bob, 16*S, 44*S, 0, 0, tau); ctx.fill(); ctx.restore();
+      if(figure.x > W + 80*S){ figure = null; figureClock = rand(22, 40); } }
+  }
+  if(env.veins){
+    const y0 = camera - 20, y1 = camera + H + 20;
+    ctx.beginPath(); for(let y = y0; y <= y1; y += 14*S){ const x = veinX(y); if(y === y0) ctx.moveTo(x, y - camera); else ctx.lineTo(x, y - camera); }
+    ctx.strokeStyle = color(80, .1, 125, .5); ctx.lineWidth = 9*S; ctx.lineCap = 'round'; ctx.stroke(); ctx.strokeStyle = color(90, .08, 120, .45); ctx.lineWidth = 2.5*S; ctx.stroke();
+    const k0 = Math.floor((camera - W*.5)/VEIN_SP()), k1 = Math.ceil((camera + H)/VEIN_SP());
+    for(let k = k0; k <= k1; k++){ const v = sideVein(k); ctx.beginPath(); ctx.moveTo(v.x0, v.y0 - camera); ctx.quadraticCurveTo(lerp(v.x0, v.x1, .5), lerp(v.y0, v.y1, .35) - camera, v.x1, v.y1 - camera); ctx.strokeStyle = color(78, .1, 125, .38); ctx.lineWidth = 5*S; ctx.stroke(); ctx.strokeStyle = color(90, .08, 120, .3); ctx.lineWidth = 1.5*S; ctx.stroke(); }
+  }
+  if(env.sunbeams){
+    for(const b of beams){
+      const x0 = b.x, x1 = b.x + H*.32;
+      ctx.beginPath(); ctx.moveTo(x0 - b.w*.5, 0); ctx.lineTo(x0 + b.w*.5, 0); ctx.lineTo(x1 + b.w*.5, H); ctx.lineTo(x1 - b.w*.5, H); ctx.closePath();
+      const g = ctx.createLinearGradient(x0 - b.w*.5, 0, x0 + b.w*.5, 0); g.addColorStop(0, color(96, .09, 95, 0)); g.addColorStop(.25, color(96, .1, 95, .22)); g.addColorStop(.75, color(96, .1, 95, .22)); g.addColorStop(1, color(96, .09, 95, 0));
+      ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+    }
+  }
+}
+function drawStreaks(dt){
+  if(streaks.length){
+    const lean = clamp(windShown, -2.5, 2.5)*.45;
+    ctx.beginPath();
+    for(const s of streaks){ s.y += s.spd*dt; s.x += lean*s.spd*dt; if(s.y > H + 30){ s.y = -30; s.x = rand(-W*.2, W*1.2); } if(s.x > W*1.25) s.x -= W*1.4; if(s.x < -W*.25) s.x += W*1.4; ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - lean*s.len, s.y - s.len); }
+    ctx.strokeStyle = env.dark ? color(88, .02, 260, .22) : color(97, .01, 120, .32); ctx.lineWidth = .9*S; ctx.stroke();
+  }
+  for(const w of wisps){ w.x += w.spd*(.4 + clamp(windShown, 0, 3)*.6)*dt; if(w.x - w.len > W){ w.x = -w.len; w.y = rand(0, H); }
+    ctx.beginPath(); ctx.ellipse(w.x, w.y, w.len, w.th, 0, 0, tau); ctx.fillStyle = color(99, .006, 230, w.a); ctx.fill(); }
+}
+
+/* ---------------- Drop rendering ---------------- */
+function dropPath(c, r, stretch, phase){ c.beginPath(); for(let i = 0; i <= 40; i++){ const a = i/40*tau, shape = 1 + .035*Math.sin(3*a + phase) + .021*Math.cos(5*a - phase), x = Math.cos(a)*r*shape/Math.sqrt(stretch), y = Math.sin(a)*r*shape*stretch; if(i === 0) c.moveTo(x, y); else c.lineTo(x, y); } c.closePath(); }
+function heroTint(){ if(effects.grime > 0) return 'grime'; if(effects.soap > 0) return 'soap'; if(effects.ice > 0) return 'ice'; return null; }
+function drawDrop(d, hero = false, tint = null){
+  if(d.vMass === undefined) d.vMass = d.mass; d.vMass += (d.mass - d.vMass)*.08;
+  const x = d.x, y = d.y - camera, r = radius(d.vMass); if(r < .3 || y < -r*3 || y > H + r*3) return;
+  const velocity = Math.hypot(d.vx, d.vy), wob = (d.wobble || 0);
+  let stretch = d.forceStretch || clamp(1 + velocity/((env.lotus ? 1150 : 700)*S) + wob*.16*Math.sin(clock*21 + (d.phase || 0)), .82, 1.45);
+  const angle = d.forceStretch ? 0 : -Math.atan2(d.vx, Math.max(12, d.vy))*.65;
+  const night = env.dark;
+  ctx.save(); ctx.globalAlpha = d.fade ?? 1; ctx.translate(x, y); ctx.rotate(angle); const phase = (d.phase || 0) + clock*1.6;
+  dropPath(ctx, r, stretch, phase); ctx.shadowColor = color(24, .025, 150, env.lotus ? .5 : .35); ctx.shadowBlur = hero ? 6*S : 2*S; ctx.shadowOffsetY = (env.lotus ? 4 : 2)*S; ctx.fillStyle = color(66, .012, 145, .12); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.shadowOffsetY = 0;
+  ctx.save(); ctx.clip();
+  const sample = Math.max(r*5, 24), sx = clamp(x/W*scene.width - sample/2, 0, Math.max(0, scene.width - sample)), sy = clamp(y/H*scene.height - sample/2, 0, Math.max(0, scene.height - sample));
+  ctx.save(); ctx.scale(-1, -1); ctx.drawImage(scene, sx, sy, Math.min(sample, scene.width), Math.min(sample, scene.height), -r*1.25/Math.sqrt(stretch), -r*1.5*stretch, r*2.5/Math.sqrt(stretch), r*3*stretch); ctx.restore();
+  let g = ctx.createLinearGradient(-r, -r*stretch, r, r*stretch); g.addColorStop(0, color(99, .008, 120, .72)); g.addColorStop(.20, color(96, .014, 129, .15)); g.addColorStop(.43, color(33, .025, 144, .10)); g.addColorStop(.72, color(95, .013, 120, .03)); g.addColorStop(.9, color(28, .028, 145, .28)); g.addColorStop(1, color(97, .014, 113, .63)); ctx.fillStyle = g; ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch);
+  g = ctx.createRadialGradient(-r*.24, -r*.3, r*.16, 0, 0, r*1.13*stretch); g.addColorStop(0, color(93, .012, 130, 0)); g.addColorStop(.69, color(35, .021, 147, 0)); g.addColorStop(.87, color(29, .024, 147, .14)); g.addColorStop(1, color(98, .012, 116, .64)); ctx.fillStyle = g; ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch);
+  if(tint === 'ice'){ ctx.fillStyle = color(95, .035, 225, .45); ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch); ctx.strokeStyle = color(99, .01, 225, .6); ctx.lineWidth = .9*S; ctx.beginPath(); ctx.moveTo(-r*.7, -r*.1); ctx.lineTo(r*.15, -r*.75); ctx.moveTo(-r*.35, r*.55); ctx.lineTo(r*.7, -r*.15); ctx.moveTo(-r*.1, r*.9); ctx.lineTo(r*.2, r*.1); ctx.stroke(); }
+  else if(tint === 'grime'){ ctx.fillStyle = color(52, .07, 65, .55); ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch); for(let k = 0; k < 4; k++){ const a = d.id*1.7 + k*2.1, rr = r*.45; ctx.beginPath(); ctx.arc(Math.cos(a)*rr, Math.sin(a)*rr, r*(.12 + (k%2)*.08), 0, tau); ctx.fillStyle = color(35, .05, 60, .45); ctx.fill(); } }
+  else if(tint === 'charge'){ ctx.fillStyle = color(80, .11, 300, .22); ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch); }
+  else if(tint === 'pollen'){ ctx.fillStyle = color(88, .12, 90, .3); ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch); for(let k = 0; k < 5; k++){ const a = clock*.8 + k*1.3; ctx.beginPath(); ctx.arc(Math.cos(a)*r*.45, Math.sin(a*1.3)*r*.4, r*.11, 0, tau); ctx.fillStyle = POLLEN_COLORS[k % 4]; ctx.fill(); } }
+  else if(tint === 'soap'){ ctx.fillStyle = color(98, .01, 250, .12); ctx.fillRect(-r*1.5, -r*1.6*stretch, r*3, r*3.2*stretch); }
+  ctx.restore();
+  const lw = Math.max(1, r/(12*S)); ctx.lineWidth = .8*S*lw; ctx.strokeStyle = night ? color(85, .02, 260, .3) : color(37, .025, 144, .32);
+  ctx.beginPath(); for(let i = 0; i <= 40; i++){ const a = i/40*tau, shape = 1 + .035*Math.sin(3*a + phase) + .021*Math.cos(5*a - phase), px = Math.cos(a)*r*shape/Math.sqrt(stretch), py = Math.sin(a)*r*shape*stretch; if(a > Math.PI*1.15 && a < Math.PI*1.85) ctx.moveTo(px, py); else if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); } ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-r*.04, -r*.09, r*.78/Math.sqrt(stretch), r*.83*stretch, 0, Math.PI*1.04, Math.PI*1.26); ctx.strokeStyle = color(99, .008, 110, .6); ctx.lineWidth = (hero ? 1.65 : 1)*S*lw; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(r*.12, r*.04, r*.84, r*.89*stretch, 0, .16, .98); ctx.strokeStyle = color(98, .008, 110, .55); ctx.lineWidth = .9*S*lw; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-r*.4, -r*.57, r*.13, r*.055, -.5, 0, tau); ctx.fillStyle = color(99, .005, 113, .9); ctx.fill();
+  if(tint === 'soap'){ const gg = ctx.createLinearGradient(Math.cos(clock)*r, Math.sin(clock)*r, -Math.cos(clock)*r, -Math.sin(clock)*r); [20, 90, 170, 250, 330].forEach((h, i) => gg.addColorStop(i/4, color(82, .13, h, .7))); dropPath(ctx, r*1.02, stretch, phase); ctx.strokeStyle = gg; ctx.lineWidth = 1.8*S*lw; ctx.stroke(); }
+  if(tint === 'pollen'){ const hg = ctx.createRadialGradient(0, 0, r*.8, 0, 0, r*2.1); hg.addColorStop(0, color(92, .12, 90, .35)); hg.addColorStop(1, color(92, .12, 90, 0)); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, r*2.1, 0, tau); ctx.fill(); }
+  if(tint === 'charge' || (hero && effects.charge > 0)){
+    const fl = .6 + .4*Math.sin(clock*31 + d.id);
+    const hg = ctx.createRadialGradient(0, 0, r*.9, 0, 0, r*1.9); hg.addColorStop(0, color(80, .13, 300, .28*fl)); hg.addColorStop(1, color(80, .13, 300, 0)); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, r*1.9, 0, tau); ctx.fill();
+    if(Math.random() < .5){ ctx.beginPath(); const a0 = rand(0, tau); let px = Math.cos(a0)*r*1.05, py = Math.sin(a0)*r*1.05; ctx.moveTo(px, py); for(let k = 0; k < 3; k++){ px += Math.cos(a0 + rand(-1, 1))*r*.25; py += Math.sin(a0 + rand(-1, 1))*r*.25; ctx.lineTo(px, py); } ctx.strokeStyle = color(92, .1, 300, .8); ctx.lineWidth = .8*S; ctx.stroke(); }
+  }
+  if(hero && P.glow){ ctx.beginPath(); ctx.ellipse(r*.3, r*.45, r*.1, r*.05, .6, 0, tau); ctx.fillStyle = color(92, .1, 85, .8); ctx.fill(); }
+  if(velocity > 25){ const backY = -r*stretch*.62; const bg = ctx.createRadialGradient(0, backY, 0, 0, backY, r*1.05); bg.addColorStop(0, color(66, .012, 145, .16)); bg.addColorStop(.6, color(66, .012, 145, .10)); bg.addColorStop(1, color(66, .012, 145, 0)); ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(0, backY, r*1.1/Math.sqrt(stretch), r*1.05, 0, 0, tau); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawBridges(){
+  if(!trails.length) return;
+  const byId = new Map(); byId.set(player.id, player); for(const d of drops) byId.set(d.id, d);
+  const groups = new Map(); for(const t of trails){ let a = groups.get(t.id); if(!a){ a = []; groups.set(t.id, a); } a.push(t); }
+  const mainPath = new Path2D(), strokePath = new Path2D(), highlightPath = new Path2D();
+  for(const [id, my] of groups){
+    if(my.length < 2) continue;
+    const owner = (state === 'dying' || state === 'home' || state === 'ended') && id === player.id ? null : byId.get(id);
+    const pts = []; for(const t of my){ const life = Math.max(0, 1 - t.age/TL); pts.push({x: t.x, y: t.y - camera, r: t.r*Math.pow(life, .4)}); }
+    if(owner){
+      const pr = radius(owner.vMass || owner.mass), velocity = Math.hypot(owner.vx, owner.vy), stretch = clamp(1 + velocity/(700*S), 1, 1.4), angle = -Math.atan2(owner.vx, Math.max(12, owner.vy))*.65;
+      const edge = pr*stretch*.92, ax = owner.x + Math.sin(angle)*edge, ay = (owner.y - camera) - Math.cos(angle)*edge, ar = pr*.28;
+      if(pts.length){
+        const targetLen = ar*4.5; let dist = Math.hypot(ax - pts[pts.length - 1].x, ay - pts[pts.length - 1].y);
+        for(let k = pts.length - 1; k >= 0; k--){ const p = pts[k], t = clamp(1 - dist/targetLen, 0, 1); p.r = p.r + (ar - p.r)*t*t*t; if(dist >= targetLen) break; if(k > 0) dist += Math.hypot(p.x - pts[k - 1].x, p.y - pts[k - 1].y); }
+        const lp = pts[pts.length - 1];
+        if(Math.hypot(ax - lp.x, ay - lp.y) < 120*S) for(let s = 1; s <= 4; s++){ const t = s/5, e = t*t*(3 - 2*t); pts.push({x: lp.x + (ax - lp.x)*t, y: lp.y + (ay - lp.y)*t, r: lp.r + (ar - lp.r)*e}); }
+      }
+      if(!pts.length || Math.hypot(ax - pts[pts.length - 1].x, ay - pts[pts.length - 1].y) < 120*S) pts.push({x: ax, y: ay, r: ar});
+    }
+    const clean = []; for(const p of pts){ if(!clean.length || Math.hypot(p.x - clean[clean.length - 1].x, p.y - clean[clean.length - 1].y) > 3*S) clean.push(p); }
+    if(clean.length < 2) continue;
+    const left = [], right = [];
+    for(let i = 0; i < clean.length; i++){
+      const p = clean[i]; let dx, dy;
+      if(i === 0){ dx = clean[1].x - p.x; dy = clean[1].y - p.y; } else if(i === clean.length - 1){ dx = p.x - clean[i - 1].x; dy = p.y - clean[i - 1].y; } else { dx = clean[i + 1].x - clean[i - 1].x; dy = clean[i + 1].y - clean[i - 1].y; }
+      const l = Math.hypot(dx, dy) || 1, nx = -dy/l, ny = dx/l; left.push({x: p.x + nx*p.r, y: p.y + ny*p.r}); right.push({x: p.x - nx*p.r, y: p.y - ny*p.r});
+    }
+    mainPath.moveTo(left[0].x, left[0].y); for(let i = 1; i < left.length; i++) mainPath.lineTo(left[i].x, left[i].y); for(let i = right.length - 1; i >= 0; i--) mainPath.lineTo(right[i].x, right[i].y); mainPath.closePath();
+    const cut = owner ? Math.min(6, Math.max(0, left.length - 2)) : 0;
+    strokePath.moveTo(left[0].x, left[0].y); for(let i = 1; i < left.length - cut; i++) strokePath.lineTo(left[i].x, left[i].y); for(let i = right.length - 1 - cut; i >= 0; i--) strokePath.lineTo(right[i].x, right[i].y);
+    highlightPath.moveTo(left[0].x, left[0].y); for(let i = 1; i < left.length - cut; i++) highlightPath.lineTo(left[i].x, left[i].y);
+  }
+  ctx.shadowColor = color(24, .025, 150, .25); ctx.shadowBlur = 3*S; ctx.fillStyle = color(66, .012, 145, .15); ctx.fill(mainPath); ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = env.dark ? color(85, .02, 260, .22) : color(37, .025, 144, .3); ctx.lineWidth = 2.4*S; ctx.stroke(strokePath);
+  ctx.strokeStyle = color(99, .008, 110, .4); ctx.lineWidth = 2.0*S; ctx.stroke(highlightPath);
+  ctx.save(); ctx.clip(mainPath); ctx.translate(0, 8*S); ctx.drawImage(scene, 0, 0, W, H); ctx.fillStyle = color(96, .014, 129, .15); ctx.fill(mainPath); ctx.restore();
+}
+
+function blobPath(r, seed, wob = .12){ ctx.beginPath(); for(let i = 0; i <= 40; i++){ const a = i/40*tau, s = 1 + wob*Math.sin(a*3 + seed) + wob*.66*Math.cos(a*5 - seed), px = Math.cos(a)*r*s, py = Math.sin(a)*r*s; if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); } ctx.closePath(); }
+function drawPatches(pass){
+  for(const p of patches){
+    if(p.spr){ if(pass !== 'top'){ const py = p.y - camera; if(py > -p.h && py < H + p.h) ctx.drawImage(p.spr, p.x - p.w/2, py - p.h/2); } continue; }
+    if((pass === 'top') !== (p.type === 'rime')) continue;
+    const py = p.y - camera; if(py < -p.r*1.6 || py > H + p.r*1.6) continue;
+    ctx.save(); ctx.translate(p.x, py);
+    if(p.type === 'rime'){
+      const tw = .8 + .2*Math.sin(clock*2 + p.seed);
+      let g = ctx.createRadialGradient(0, 0, 0, 0, 0, p.r*1.05); g.addColorStop(0, color(99, .02, 225, .55)); g.addColorStop(.7, color(96, .03, 225, .35)); g.addColorStop(1, color(96, .03, 225, 0)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, p.r*1.05, 0, tau); ctx.fill();
+      ctx.rotate(p.rotation); ctx.strokeStyle = color(99, .015, 225, .9*tw); ctx.lineCap = 'round';
+      for(let a = 0; a < 6; a++){ ctx.save(); ctx.rotate(a*tau/6); ctx.lineWidth = 2.2*S; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(p.r*.95, 0); ctx.stroke(); ctx.lineWidth = 1.3*S;
+        for(let b = 1; b <= 3; b++){ const bx = p.r*b*.24, bl = p.r*(.26 - b*.04); ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx + bl*.6, -bl); ctx.moveTo(bx, 0); ctx.lineTo(bx + bl*.6, bl); ctx.stroke(); } ctx.restore(); }
+      ctx.strokeStyle = color(70, .06, 235, .35); ctx.lineWidth = 1*S; ctx.beginPath(); ctx.arc(0, 0, p.r, 0, tau); ctx.stroke();
+      ctx.restore(); continue;
+    }
+    ctx.rotate(p.rotation); ctx.scale(1, p.stretch); blobPath(p.r, p.seed);
+    if(p.type === 'wet'){
+      ctx.save(); ctx.clip(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.drawImage(scene, 0, 8*S, W, H); ctx.fillStyle = color(66, .012, 145, .12); ctx.fillRect(0, 0, W, H); ctx.restore();
+      ctx.lineWidth = 1.5*S; ctx.strokeStyle = env.dark ? color(85, .02, 260, .2) : color(37, .025, 144, .2); ctx.stroke();
+      ctx.save(); ctx.clip(); ctx.beginPath(); ctx.ellipse(-p.r*.2, -p.r*.3, p.r*.6, p.r*.4, -.2, 0, tau); ctx.strokeStyle = color(99, .008, 110, .3); ctx.lineWidth = 3*S; ctx.filter = `blur(${3*S}px)`; ctx.stroke(); ctx.filter = 'none'; ctx.restore();
+    } else if(p.type === 'dry'){
+      let g = ctx.createRadialGradient(0, 0, 0, 0, 0, p.r*1.1); g.addColorStop(0, color(96, .005, 115, .45)); g.addColorStop(.5, color(96, .005, 115, .25)); g.addColorStop(1, color(96, .005, 115, 0)); ctx.fillStyle = g; ctx.fill();
+      for(let j = 1; j <= 3; j++){ const sx = Math.cos(p.seed*j)*p.r*.3, sy = Math.sin(p.seed*j)*p.r*.3; const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, p.r*.6); sg.addColorStop(0, color(98, .005, 110, .2)); sg.addColorStop(1, color(98, .005, 110, 0)); ctx.fillStyle = sg; ctx.fill(); }
+      ctx.setLineDash([2*S, 5*S]); ctx.strokeStyle = color(60, .01, 110, .18); ctx.lineWidth = 1*S; ctx.stroke(); ctx.setLineDash([]);
+    } else if(p.type === 'oil'){
+      ctx.save(); ctx.clip();
+      for(let k = 5; k >= 1; k--){ ctx.beginPath(); ctx.ellipse(Math.sin(p.seed + k)*p.r*.1, 0, p.r*k/5, p.r*k/5*.8, clock*.05*k, 0, tau); ctx.fillStyle = color(72, .1, (p.seed*40 + k*60 + clock*10) % 360, .09); ctx.fill(); }
+      ctx.restore(); ctx.strokeStyle = color(80, .08, 280, .25); ctx.lineWidth = 1*S; ctx.stroke();
+    } else if(p.type === 'dirt'){
+      ctx.fillStyle = color(45, .04, 70, .22); ctx.fill();
+      for(let k = 0; k < 22; k++){ const a = p.seed*k*1.3, rr = p.r*(.2 + ((k*37) % 10)/12); ctx.beginPath(); ctx.arc(Math.cos(a)*rr*.9, Math.sin(a)*rr*.9, (1 + k%3)*S, 0, tau); ctx.fillStyle = color(38, .05, 60, .35); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+}
+function drawParticles(){
+  for(const p of particles){
+    const k = 1 - p.life/p.max, x = p.x, y = p.y - camera; if(y < -60 || y > H + 60) continue;
+    if(p.kind === 'spray'){ ctx.beginPath(); ctx.arc(x, y, p.r*(.6 + k*.4), 0, tau); ctx.fillStyle = p.col ? color(p.col[0], p.col[1], p.col[2], .7*k) : (env.dark ? color(90, .02, 260, .6*k) : color(98, .01, 120, .75*k)); ctx.fill(); }
+    else if(p.kind === 'vapor'){ const r = p.r*(1 + p.life*1.6); const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, color(99, .005, 120, .35*k)); g.addColorStop(1, color(99, .005, 120, 0)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r*2, r*2); }
+    else if(p.kind === 'shard'){ ctx.globalAlpha = k; ctx.fillStyle = 'rgba(240,250,255,.9)'; ctx.fillRect(x, y, p.r*1.6, p.r*.8); ctx.globalAlpha = 1; }
+    else if(p.kind === 'mist'){ const r = p.r*(1 + p.life*.4); const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, color(98, .01, 130, .22*k*Math.min(1, p.life*3))); g.addColorStop(1, color(98, .01, 130, 0)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r*2, r*2); }
+  }
+}
+function drawPulses(){
+  for(const p of pulses){
+    ctx.save(); ctx.globalAlpha = 1 - p.age/.9;
+    const r = (14 + p.age*26)*S; ctx.beginPath(); ctx.arc(p.x, p.y - camera, r, 0, tau);
+    ctx.strokeStyle = p.tone === 'down' ? color(60, .12, 40, .55) : color(97, .015, 115, .55); ctx.lineWidth = .8*S; ctx.stroke();
+    ctx.font = `700 ${11*S}px -apple-system, sans-serif`; ctx.textAlign = 'center';
+    ctx.fillStyle = p.tone === 'down' ? color(env.dark ? 80 : 48, .13, 40, .95) : (env.dark ? color(94, .02, 260, .9) : color(29, .034, 147, .85));
+    ctx.fillText(p.text, p.x, p.y - camera - 24*S - p.age*26*S); ctx.restore();
+  }
+}
+/* ---------------- Draw ---------------- */
+function draw(){
+  const dt = frameDt; sceneT += dt;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  if(state === 'menu' || state === 'opening'){ renderIntro(); drawParticles(); return; }
+  if(state === 'ending' || (state === 'ended' && run && run.home)){ renderEnding(); return; }
+  if(state === 'transition' && fallT){ renderFallG1(); return; }
+  const sx = shake > .05 ? (Math.random() - .5)*shake*S : 0, sy = shake > .05 ? (Math.random() - .5)*shake*S : 0;
+  if(G1KEYS.has(env.key)) g1Paint(env.key, scene, camera);
+  ctx.drawImage(scene, 0, 0, W, H);
+  if(flash > 0 && !G1KEYS.has(env.key)){ ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(200,210,255,${flash*.5})`; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; }
+  if(env.fog) buildSceneLo();
+  ctx.save(); ctx.translate(sx, sy);
+  if(env.leaf){ drawVeins(ctx, camera, .28); drawLeafMargin(ctx, camera); }
+  drawAmbientBack(dt);
+  drawStreaks(dt);
+  for(const s of specks){ const y = ((s.y - camera*.8) % H + H) % H; ctx.beginPath(); ctx.ellipse(s.x, y, s.r, s.r*1.4, 0, 0, tau); ctx.fillStyle = color(97, .01, 116, s.a); ctx.fill(); }
+  drawPatches('base');
+  if(wiperWet > 0 && wiperLast){ ctx.fillStyle = `rgba(200,215,255,${wiperWet/5*.05})`; ctx.fillRect(0, 0, W, H); }
+  if(env.fog && !env.fog.frost) composeFog(env.fog, env.fog.alpha);
+  drawBridges();
+  const specials = [];
+  for(const d of drops){ if(d.kind) specials.push(d); else drawDrop(d, false, null); }
+  if(env.fog && env.fog.frost){
+    composeFog(env.fog, env.fog.alpha);
+    ctx.fillStyle = 'rgba(60,80,120,.12)';
+    for(const d of drops){ if(d.kind) continue; const dsy = d.y - camera, r = radius(d.mass); if(r < 3*S || dsy < -10 || dsy > H + 10) continue; if(Math.hypot(d.x - player.x, d.y - player.y) < 110*Q) continue; ctx.beginPath(); ctx.arc(d.x, dsy, r*1.15, 0, tau); ctx.fill(); }
+  }
+  for(const d of specials) drawDrop(d, false, d.kind);
+  drawSill();
+  drawChargeArcs();
+  if(state !== 'ended'){ drawDrop(player, true, heroTint()); drawHeroExtras(); }
+  drawWiper(); drawBeamsG1();
+  drawParticles(); drawRings(); drawPulses();
+  ctx.restore();
+  if(state === 'playing' || state === 'transition' || state === 'paused') drawRail();
+}
+function drawOverlays(){}
+/* ---------------- HUD ---------------- */
+const FX_COL = {ice: 'oklch(80% .08 225)', soap: 'oklch(78% .12 330)', charge: 'oklch(70% .15 300)', grime: 'oklch(55% .1 60)'};
+function updateUI(){
+  const pct = clamp((Math.sqrt(Math.max(0, player.mass)) - 1)/19, 0, 1);
+  $('water-fill-visual').style.height = (pct*100) + '%';
+  $('in-game-distance').textContent = score.toLocaleString();
+  let top = null, best = 0; for(const k in effects) if(effects[k] > best){ best = effects[k]; top = k; }
+  const ring = $('fx-ring');
+  if(top){ ring.style.stroke = FX_COL[top]; ring.style.strokeDashoffset = 160*(1 - clamp(best/effectMax[top], 0, 1)); $('water-fill').style.fill = FX_COL[top]; }
+  else { ring.style.strokeDashoffset = 160; $('water-fill').style.fill = ''; }
+  const segs = $('chapter-track').children;
+  for(let i = 0; i < segs.length; i++) segs[i].firstChild.style.width = (i < envIndex ? 100 : i === envIndex ? clamp(chapterTravel/env.len, 0, 1)*100 : 0) + '%';
+  const danger = state === 'playing' && pct < .3 && effects.ice <= 0 ? 1 - pct/.3 : 0;
+  dangerLevel = danger;
+  $('danger-overlay').style.opacity = danger ? danger*(.55 + .35*Math.sin(runTime*6)) : 0;
+}
+
+/* ---------------- Audio: game 1's synthesized sound design, on game 2's sound + music switches ---------------- */
+const A = { ctx: null };
+function audioInit(){
+  if(A.ctx){ if(A.ctx.state === 'suspended') A.ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+  const C = new AC(); A.ctx = C;
+  const comp = C.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3; comp.connect(C.destination);
+  A.out = C.createGain(); A.out.gain.value = .9; A.out.connect(comp);
+  A.master = C.createGain(); A.master.gain.value = soundOn ? 1 : 0; A.master.connect(A.out);
+  A.mus = C.createGain(); A.mus.gain.value = musicOn ? 1 : 0; A.mus.connect(A.out);
+  const len = C.sampleRate*3, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0);
+  let b0 = 0, b1 = 0, b2 = 0;
+  for(let i = 0; i < len; i++){ const w = Math.random()*2 - 1; b0 = .997*b0 + w*.029; b1 = .985*b1 + w*.032; b2 = .95*b2 + w*.048; d[i] = (b0 + b1 + b2 + w*.02)*1.6; }
+  A.noise = buf;
+  const wbuf = C.createBuffer(1, C.sampleRate, C.sampleRate), wd = wbuf.getChannelData(0);
+  for(let i = 0; i < wd.length; i++) wd[i] = Math.random()*2 - 1; A.white = wbuf;
+  const loop = b => { const s = C.createBufferSource(); s.buffer = b; s.loop = true; s.start(); return s; };
+  const chain = (src, nodes, g0) => { let n = src; nodes.forEach(x => { n.connect(x); n = x; }); const g = C.createGain(); g.gain.value = g0; n.connect(g); g.connect(A.master); return g; };
+  const bq = (type, f, q) => { const b = C.createBiquadFilter(); b.type = type; b.frequency.value = f; if(q) b.Q.value = q; return b; };
+  A.rain = chain(loop(buf), [bq('highpass', 700), bq('lowpass', 5200)], 0);
+  A.rainLow = chain(loop(buf), [bq('lowpass', 380)], 0);
+  const wbp = bq('bandpass', 420, .9); A.windF = wbp.frequency; A.wind = chain(loop(buf), [wbp], 0);
+  const sbp = bq('bandpass', 2100, 1.4); A.slideF = sbp.frequency; A.slide = chain(loop(A.white), [sbp], 0);
+  const eo = C.createOscillator(); eo.type = 'sawtooth'; eo.frequency.value = 42; eo.start(); A.engF = eo.frequency;
+  A.engine = chain(eo, [bq('lowpass', 150)], 0);
+  A.padG = C.createGain(); A.padG.gain.value = 0; const pf = bq('lowpass', 900); A.padG.connect(pf); pf.connect(A.mus);
+  A.pad = [0, 1, 2, 3].map(i => { const o = C.createOscillator(); o.type = 'triangle'; o.frequency.value = 220; o.detune.value = (i % 2 ? 6 : -6); const g = C.createGain(); g.gain.value = .22; o.connect(g); g.connect(A.padG); o.start(); return o; });
+  setPad(CHORDS[envIndex] || CHORDS[0]);
+}
+function setPad(ch){ if(!A.ctx) return; const t = A.ctx.currentTime; A.pad.forEach((o, i) => o.frequency.setTargetAtTime(ch[i], t, 1.5)); }
+function audioEnv(){ setPad(CHORDS[envIndex] || CHORDS[0]); }
+function aset(g, v, tc = .15){ if(A.ctx && g) g.gain.setTargetAtTime(v, A.ctx.currentTime, tc); }
+function panner(p){ const C = A.ctx; if(C.createStereoPanner){ const s = C.createStereoPanner(); s.pan.value = clamp(p, -1, 1); s.connect(A.master); return s; } return A.master; }
+function plip(freq, vol = .18, pan = 0, dur = .12){
+  if(!A.ctx || !soundOn) return; const C = A.ctx, t = C.currentTime;
+  const o = C.createOscillator(), g = C.createGain(); o.type = 'sine';
+  o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq*.52, t + dur*.8);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .06);
+  o.connect(g); g.connect(panner(pan)); o.start(t); o.stop(t + dur + .1);
+}
+function noiseHit(f, q, vol, dur, pan = 0, type = 'bandpass'){
+  if(!A.ctx || !soundOn) return; const C = A.ctx, t = C.currentTime;
+  const s = C.createBufferSource(); s.buffer = A.white; const b = C.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q;
+  const g = C.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(b); b.connect(g); g.connect(panner(pan)); s.start(t, Math.random()*.5); s.stop(t + dur + .05);
+}
+function sweep(f0, f1, dur, vol, q = 1.2){
+  if(!A.ctx || !soundOn) return; const C = A.ctx, t = C.currentTime;
+  const s = C.createBufferSource(); s.buffer = A.noise; const b = C.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = q;
+  b.frequency.setValueAtTime(f0, t); b.frequency.linearRampToValueAtTime(f1, t + dur);
+  const g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + dur*.5); g.gain.linearRampToValueAtTime(0, t + dur);
+  s.connect(b); b.connect(g); g.connect(A.master); s.start(t); s.stop(t + dur + .1);
+}
+const sfx = {
+  absorb(dm, pan = 0){ plip(clamp(1300 - dm*1400, 380, 1300)*rand(.94, 1.06), clamp(.08 + dm*.5, .08, .3), pan); },
+  merge(m){ this.absorb(m/65, 0); },
+  tick(pan){ noiseHit(rand(3500, 7000), 3, rand(.015, .05), .04, pan); },
+  split(){ plip(620, .2, -.3, .1); setTimeout(() => plip(980, .16, .3, .09), 45); },
+  deny(){ plip(160, .12, 0, .12); },
+  land(){ plip(210, .35, 0, .3); noiseHit(900, .7, .14, .25); },
+  chime(n = 0){ [880, 1108.7, 1318.5, 1760].forEach((f, i) => setTimeout(() => plip(f*(n ? 1.122 : 1), .1, (i - 1.5)*.3, .9), i*110)); },
+  wiperTick(){ noiseHit(2500, 8, .06, .025); plip(1400, .03, 0, .02); },
+  wiper(){
+    if(!A.ctx || !soundOn) return; const C = A.ctx, t = C.currentTime;
+    const s = C.createBufferSource(); s.buffer = A.noise; const b = C.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = 1.2;
+    b.frequency.setValueAtTime(600, t); b.frequency.linearRampToValueAtTime(2200, t + .7); b.frequency.linearRampToValueAtTime(600, t + 1.45);
+    const g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.35, t + .15); g.gain.setValueAtTime(.35, t + 1.2); g.gain.linearRampToValueAtTime(0, t + 1.5);
+    s.connect(b); b.connect(g); g.connect(A.master); s.start(t); s.stop(t + 1.6);
+    plip(90, .3, 0, .15); setTimeout(() => plip(80, .25, 0, .15), 1420);
+  },
+  thunder(near){
+    if(!A.ctx || !soundOn) return; const C = A.ctx, t = C.currentTime;
+    const s = C.createBufferSource(); s.buffer = A.noise; const b = C.createBiquadFilter(); b.type = 'lowpass';
+    b.frequency.setValueAtTime(near ? 900 : 300, t); b.frequency.exponentialRampToValueAtTime(70, t + 4);
+    const g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(near ? .9 : .55, t + .25); g.gain.exponentialRampToValueAtTime(.001, t + 4.5);
+    s.connect(b); b.connect(g); g.connect(A.master); s.start(t); s.stop(t + 4.6);
+  },
+  crack(){ for(let i = 0; i < 4; i++) setTimeout(() => noiseHit(rand(3000, 8000), 6, .08, .03, rand(-.4, .4)), i*40); },
+  freeze(){ for(let i = 0; i < 7; i++) setTimeout(() => plip(rand(2400, 4200), .03, rand(-.5, .5), .05), i*70); },
+  hurt(){ plip(300, .22, 0, .25); noiseHit(500, 1, .12, .3); },
+  vapor(){ [660, 554, 440, 330].forEach((f, i) => setTimeout(() => plip(f, .08, 0, 1.2), i*260)); },
+  ice(){ this.freeze(); },
+  soap(){ plip(520, .12, 0, .3); plip(780, .08, 0, .3); },
+  charge(){ plip(1800, .07, 0, .05); noiseHit(5000, 2, .08, .08); },
+  grime(){ this.hurt(); },
+  pop(){ noiseHit(3200, 2, .05, .05); },
+  thwack(){ this.hurt(); noiseHit(420, .8, .22, .2, 0, 'lowpass'); },
+  whoosh(){ sweep(300, 900, 2.2, .22, .7); },
+  hiss(){ noiseHit(4000, .7, .05, 1.2, 0, 'highpass'); },
+  sigh(){ this.vapor(); },
+  plink(){ plip(600, .2, 0, .15); },
+  drip(){ plip(700, .14, 0, .12); },
+  note(i){ plip(440*Math.pow(1.122, Math.min(i + 1, 8)*2), .16, 0, .25); },
+  grow(){ [0, 2, 4, 7, 9, 12].forEach((s, i) => setTimeout(() => plip(523.25*Math.pow(2, s/12), .09, (i - 2.5)*.2, .9), 400 + i*170)); },
+  wake(){}, gatherStart(){}, whirr(){}, squeegee(){},
+  duck(on){ if(A.out) A.out.gain.setTargetAtTime(on ? .3 : .9, A.ctx.currentTime, .15); },
+};
+function ensureAudio(){ audioInit(); }
+function toggleAudio(){ ensureAudio(); soundOn = !soundOn; if(A.master) A.master.gain.setTargetAtTime(soundOn ? 1 : 0, A.ctx.currentTime, .1); save.sound = soundOn; persist(); updateSettingsIcons(); }
+function toggleMusic(){ ensureAudio(); musicOn = !musicOn; if(A.mus) A.mus.gain.setTargetAtTime(musicOn ? 1 : 0, A.ctx.currentTime, .3); save.music = musicOn; persist(); updateSettingsIcons(); }
+let audT = 0;
+function audioTick(dt){
+  if(!A.ctx) return; audT -= dt; if(audT > 0) return; audT = .1;
+  const t = A.ctx.currentTime, st = state, menu = st === 'menu' || st === 'opening';
+  const inPlay = st === 'playing' || (st === 'transition' && !fallT), falling = st === 'transition' && !!fallT, imp = env.impacts || 0;
+  aset(A.rain, menu ? .05 : falling ? .02 : (st === 'ending' || st === 'ended') ? .012 : imp*.045 + .02, .5);
+  aset(A.rainLow, menu ? .08 : inPlay ? .06 + imp*.02 : .03, .5);
+  const wk = clamp(Math.abs(windShown)/1.6, 0, 1), gk = gust && gust.phase === 'blow' ? .12 : 0;
+  aset(A.wind, inPlay ? wk*.22 + gk : falling ? .18 : 0, .3); A.windF.setTargetAtTime(300 + wk*350, t, .3);
+  const sp = st === 'playing' ? Math.hypot(player.vx, player.vy)/S : 0;
+  aset(A.slide, clamp(sp/650, 0, 1)*.06*Math.min(1, radius(player.mass)/(22*S)), .1);
+  A.slideF.setTargetAtTime(2600 - clamp(player.mass/65, 0, 3)*450, t, .2);
+  aset(A.engine, env.key === 'windshield' && inPlay ? .05 + wk*.1 : 0, .4); A.engF.setTargetAtTime(38 + wk*34, t, .3);
+  aset(A.padG, menu ? .06 : .045, 1);
+}
+
+async function toggleControl(){
+  if(controlType === 'touch' && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+    try { const perm = await DeviceOrientationEvent.requestPermission(); if(perm === 'granted') controlType = 'tilt'; } catch {}
+  } else controlType = controlType === 'touch' ? 'tilt' : 'touch';
+  updateSettingsIcons();
+}
+function updateSettingsIcons(){
+  const sOn = `<path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/>`, sOff = `<path d="M11 5 6 9H3v6h3l5 4Z"/><line x1="16" y1="9" x2="22" y2="15"/><line x1="22" y1="9" x2="16" y2="15"/>`;
+  const mOn = `<path d="M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 11-6 0 3 3 0 016 0zM21 16a3 3 0 11-6 0 3 3 0 016 0z"/>`, mOff = mOn + `<line x1="2" y1="2" x2="22" y2="22"/>`;
+  const tTouch = `<path d="M12 2a4 4 0 00-4 4v7H7a3 3 0 00-3 3l2.5 7h9.4a5 5 0 004.8-3.6l1.3-4.5A2.5 2.5 0 0019.5 10H16V6a4 4 0 00-4-4z"/>`;
+  const tTilt = `<rect x="6" y="3" width="12" height="18" rx="2" transform="rotate(15 12 12)"/><path d="M3 8a10 10 0 000 8M21 8a10 10 0 010 8"/>`;
+  const apply = (id, icon) => { $(id).innerHTML = `<svg viewBox="0 0 24 24">${icon}</svg>`; };
+  apply('btn-sound', soundOn ? sOn : sOff); apply('btn-pause-sound', soundOn ? sOn : sOff);
+  apply('btn-music', musicOn ? mOn : mOff); apply('btn-pause-music', musicOn ? mOn : mOff);
+  apply('btn-control', controlType === 'touch' ? tTouch : tTilt); apply('btn-pause-control', controlType === 'touch' ? tTouch : tTilt);
+}
+
+/* ---------------- Loop ---------------- */
+function loop(now){
+  const dt = Math.min(.06, (now - last)/1000 || 0); last = now; frameDt = state === 'paused' ? 0 : dt;
+  if(state !== 'paused') clock += dt;
+  if(state === 'playing'){ acc += dt; let n = 0; while(acc >= 1/60 && n++ < 4){ step(1/60); acc -= 1/60; if(state !== 'playing'){ acc = 0; break; } } }
+  else if(state === 'transition') updateTransition(dt);
+  else if(state === 'ending') updateEnding(dt);
+  else if(state === 'dying') updateDying(dt);
+  else if(state === 'menu' || state === 'opening') updateIntro(dt);
+  else if(state === 'ended') updateParticles(dt);
+  if(state !== 'paused'){
+    if(hintTimer > 0){ hintTimer -= dt; if(hintTimer <= 0) hideHint(); }
+    if(hintKey === 'steer' && (input.active || input.keys.size || tiltActive) && runTime > 2.5){ save.hints.steer = 1; persist(); hintTimer = Math.min(hintTimer, 1); hintKey = null; }
+    if(toastTimer > 0){ toastTimer -= dt; if(toastTimer <= 0) $('toast').classList.remove('show'); }
+    shake *= Math.exp(-dt*8); flash = Math.max(0, flash - dt*2.8);
+    uiClock += dt; if(uiClock > .08 && (state === 'playing' || state === 'transition')){ uiClock = 0; updateUI(); }
+    if(!window.__noDraw) draw();
+  }
+  audioTick(dt);
+  requestAnimationFrame(loop);
+}
+
+/* ---------------- Input ---------------- */
+canvas.addEventListener('pointerdown', e => {
+  ensureAudio();
+  if(plantOpen()) return;
+  if(state === 'menu'){ if(currentScreen !== 'screen-menu' || !intro) return; $('settings-container').classList.remove('open'); intro.ptr = {id: e.pointerId, x0: e.clientX, y0: e.clientY, t: performance.now(), moved: 0}; try { canvas.setPointerCapture(e.pointerId); } catch {} e.preventDefault(); return; }
+  if(state === 'opening') return;
+  if(state !== 'playing') return;
+  input.active = true; input.touch = e.pointerType !== 'mouse'; input.x = input.originX = input.downX = e.clientX; input.y = input.originY = input.downY = e.clientY; input.downT = performance.now(); input.moved = 0;
+  try { canvas.setPointerCapture(e.pointerId); } catch {} e.preventDefault();
+});
+canvas.addEventListener('pointermove', e => {
+  if(state === 'menu' && intro && intro.ptr && intro.ptr.id === e.pointerId){ const p = intro.ptr; p.moved = Math.max(p.moved, Math.hypot(e.clientX - p.x0, e.clientY - p.y0)); if(!intro.detached) intro.target = clamp((e.clientY - p.y0)/(H*.2), 0, 1.08); return; }
+  if(state !== 'playing') return;
+  if(e.pointerType === 'mouse' && !input.active){ input.active = true; input.touch = false; }
+  input.x = e.clientX; input.y = e.clientY; if(input.downT) input.moved = Math.max(input.moved, Math.hypot(e.clientX - input.downX, e.clientY - input.downY));
+});
+canvas.addEventListener('pointerup', e => {
+  if(state === 'menu' && intro && intro.ptr){ const p = intro.ptr; if(save.seenOpening && p.moved < 14 && performance.now() - p.t < 450) detach(); else if(!intro.detached) intro.target = 0; intro.ptr = null; return; }
+  if(state === 'playing' && input.downT && performance.now() - input.downT < 230 && input.moved < 14*S + 4) split(Math.sign(e.clientX - player.x) || input.lastDir);
+  input.downT = 0;
+  if(e.pointerType !== 'mouse') input.active = false;
+});
+canvas.addEventListener('pointercancel', () => { input.active = false; input.downT = 0; if(intro && !intro.detached){ intro.target = 0; intro.ptr = null; } });
+canvas.addEventListener('pointerleave', e => { if(e.pointerType === 'mouse' && !e.buttons) input.active = false; });
+window.addEventListener('deviceorientation', e => { if(e.gamma !== null){ tiltActive = true; tiltX = e.gamma; tiltY = e.beta; } });
+document.addEventListener('keydown', e => {
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if(plantOpen()){ if(k === 'Escape'){ closePlant(); goToMenu(); } return; }
+  if(state === 'menu' && currentScreen === 'screen-menu' && intro && !intro.detached && [' ', 'Enter', 'ArrowDown', 's'].includes(k)){ if(!e.repeat){ ensureAudio(); if(save.seenOpening) detach(); else intro.target = 1.08; } e.preventDefault(); return; }
+  if(k === 'm' && !e.repeat) toggleAudio();
+  if(k === 'n' && !e.repeat) toggleMusic();
+  if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(k) && (state === 'playing' || state === 'transition')){ input.keys.add(k); e.preventDefault(); }
+  if((k === ' ' || k === 'Enter') && !e.repeat){
+    ensureAudio();
+    if(state === 'playing'){ const st = (input.keys.has('ArrowRight') || input.keys.has('d') ? 1 : 0) - (input.keys.has('ArrowLeft') || input.keys.has('a') ? 1 : 0); split(st || input.lastDir); e.preventDefault(); }
+    else if(state === 'ended'){ restart(); e.preventDefault(); }
+  }
+  if((k === 'p' || k === 'Escape') && !e.repeat){ if(state === 'playing') pause(true); else if(state === 'paused') pause(false); e.preventDefault(); }
+});
+document.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; input.keys.delete(k); if(state === 'menu' && intro && !intro.detached && [' ', 'Enter', 'ArrowDown', 's'].includes(k)) intro.target = 0; });
+document.addEventListener('visibilitychange', () => { if(document.hidden && state === 'playing') pause(true); });
+
+function restart(){ closePlant(); goToMenu(); if(intro){ intro.pullAt = 0; detach(); } }
+$('btn-plant').addEventListener('click', () => { ensureAudio(); $('settings-container').classList.remove('open'); openPlant('view'); });
+$('btnAgain').addEventListener('click', restart);
+$('btnClose').addEventListener('click', () => { closePlant(); goToMenu(); });
+$('btn-settings').addEventListener('click', () => $('settings-container').classList.toggle('open'));
+['btn-sound', 'btn-pause-sound'].forEach(id => $(id).addEventListener('click', toggleAudio));
+['btn-music', 'btn-pause-music'].forEach(id => $(id).addEventListener('click', toggleMusic));
+['btn-control', 'btn-pause-control'].forEach(id => $(id).addEventListener('click', toggleControl));
+$('btn-top-info').addEventListener('click', () => { refreshMenu(); showScreen('screen-info'); });
+$('btn-info-menu').addEventListener('click', () => showScreen('screen-menu'));
+$('btn-pause').addEventListener('click', () => pause(true));
+$('btn-pause-resume').addEventListener('click', () => pause(false));
+$('btn-pause-restart').addEventListener('click', () => { sfx.duck(false); restart(); });
+$('btn-ended-restart').addEventListener('click', restart);
+$('btn-ended-menu').addEventListener('click', goToMenu);
+$('btn-pause-menu').addEventListener('click', () => { sfx.duck(false); goToMenu(); });
+
+/* ---------------- Resize & boot ---------------- */
+function resize(){
+  const ow = W, oh = H; W = innerWidth; H = innerHeight; S = clamp(Math.min(W/500, H/820), .66, 1.25); Q = clamp(Math.min(W/480, H/700), .7, 1.7); DPR = Math.min(devicePixelRatio || 1, 1.65);
+  canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if(!G1KEYS.has(env.key)) paintScene(env.key, scene);
+  if(fallT && !G1KEYS.has(ENVS[fallT.to].key)) paintScene(ENVS[fallT.to].key, nextScene);
+  if(state !== 'menu' && state !== 'opening' && ow && oh){ const sy = player.y - camera; player.x = player.x/ow*W; camera = player.y - sy/oh*H; drops.forEach(d => d.x = d.x/ow*W); trails.forEach(t => t.x = t.x/ow*W); patches.forEach(p => p.x = p.x/ow*W); }
+  specks = Array.from({length: Math.min(130, Math.floor(W*H/6500))}, () => ({x: rand(0, W), y: rand(0, H), r: rand(.45, 1.8)*S, a: rand(.07, .23)}));
+  for(const k in bokehSets) delete bokehSets[k];
+  fogResize(); fog.cam = camera;
+  initStreaks(); initBokeh();
+}
+window.addEventListener('resize', resize);
+soundOn = save.sound !== false; musicOn = save.music !== false;
+resize(); goToMenu(); updateSettingsIcons();
+window.__pluvia = { get state(){ return state; }, get env(){ return env.key; }, player, save, get drops(){ return drops; }, get sill(){ return sill; }, get chapterTravel(){ return chapterTravel; }, get camera(){ return camera; }, get frozen(){ return frozenSolid; }, get run(){ return run; }, detach, loop, jump(i){ if(state !== 'playing' && state !== 'transition') start({x: W*.5}); setEnv(i, true); player.y = camera + H*.4; player.vy = 80*S; chapterTravel = 0; chapterTime = 0; chapterInit(); seedDrops(true); state = 'playing'; } };
+requestAnimationFrame(loop);
+})();
+</script>
+
+
+</body></html>
